@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../bloc/login_bloc.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/divider_with_text.dart';
@@ -78,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           title: const Text(
-            'Rentara',
+            AppStrings.appName,
             style: TextStyle(
               color: Color(0xFF1F2937),
               fontSize: 18,
@@ -97,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   // Welcome title
                   Text(
-                    'Welcome Back to\nRentara Property',
+                    AppStrings.loginTitle,
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
@@ -109,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   // Subtitle
                   Text(
-                    'Access curated listings and manage your property search seamlessly.',
+                    AppStrings.loginSubtitle,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -121,8 +122,8 @@ class _LoginPageState extends State<LoginPage> {
 
                   // Email field
                   CustomTextField(
-                    label: 'Email',
-                    hintText: 'Enter your email',
+                    label: AppStrings.email,
+                    hintText: AppStrings.emailHint,
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     controller: _emailController,
@@ -146,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Password',
+                            AppStrings.password,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -158,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                               // Handle forgot password
                             },
                             child: const Text(
-                              'Forgot Password?',
+                              AppStrings.forgotPassword,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -182,7 +183,7 @@ class _LoginPageState extends State<LoginPage> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          hintText: 'Enter your password',
+                          hintText: AppStrings.passwordHint,
                           hintStyle: const TextStyle(
                             color: Color(0xFF9CA3AF),
                             fontSize: 14,
@@ -322,7 +323,7 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                   )
                                 : const Text(
-                                    'Login',
+                                    AppStrings.login,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
@@ -367,7 +368,7 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'Don\'t have an Account?',
+                        AppStrings.dontHaveAccount,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
@@ -380,7 +381,7 @@ class _LoginPageState extends State<LoginPage> {
                           context.go('/register');
                         },
                         child: const Text(
-                          'Register',
+                          AppStrings.signUp,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,

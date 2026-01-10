@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../bloc/register_bloc.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/divider_with_text.dart';
@@ -91,7 +92,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
           title: const Text(
-            'Rentara',
+            AppStrings.appName,
             style: TextStyle(
               color: Color(0xFF1F2937),
               fontSize: 18,
@@ -110,7 +111,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   // Welcome title
                   const Text(
-                    'Discover Properties\nwith Confidence',
+                    AppStrings.registerTitle,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
@@ -122,7 +123,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   // Subtitle
                   const Text(
-                    'Create an account to access curated listings and smart property tools.',
+                    AppStrings.registerSubtitle,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -284,8 +285,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   // Email
                   CustomTextField(
-                    label: 'Email',
-                    hintText: 'Enter your email',
+                    label: AppStrings.email,
+                    hintText: AppStrings.emailHint,
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     controller: _emailController,
@@ -325,7 +326,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Password',
+                        AppStrings.password,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -346,7 +347,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          hintText: 'Enter your password',
+                          hintText: AppStrings.passwordHint,
                           hintStyle: const TextStyle(
                             color: Color(0xFF9CA3AF),
                             fontSize: 14,
@@ -415,7 +416,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Confirm Password',
+                        AppStrings.confirmPassword,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -436,7 +437,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          hintText: 'Confirm your password',
+                          hintText: AppStrings.confirmPasswordHint,
                           hintStyle: const TextStyle(
                             color: Color(0xFF9CA3AF),
                             fontSize: 14,
@@ -555,7 +556,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     ),
                                   )
                                 : const Text(
-                                    'Register Now',
+                                    AppStrings.register,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
@@ -597,7 +598,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'Already have an Account?',
+                        AppStrings.alreadyHaveAccount,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
@@ -608,7 +609,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       GestureDetector(
                         onTap: () => context.go('/login'),
                         child: const Text(
-                          'Login',
+                          AppStrings.login,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
