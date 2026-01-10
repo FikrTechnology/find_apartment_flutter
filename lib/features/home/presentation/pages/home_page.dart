@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_strings.dart';
 
 class HomePage extends StatefulWidget {
@@ -76,7 +77,7 @@ class _HomePageState extends State<HomePage> {
                   color: Color(0xFF1F2937),
                   size: 24,
                 ),
-                onPressed: () {},
+                onPressed: () => context.go('/search-result'),
               ),
             ),
           ),
