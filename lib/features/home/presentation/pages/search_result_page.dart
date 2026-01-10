@@ -226,7 +226,8 @@ class _SearchResultPageState extends State<SearchResultPage> {
                           width: double.infinity,
                           height: 48,
                           child: OutlinedButton(
-                            onPressed: () {},
+                            onPressed: () => context.go(
+                                '/all-search-result?q=${_searchController.text}'),
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(
                                 color: Color(0xFF6366F1),
