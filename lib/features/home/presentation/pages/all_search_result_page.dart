@@ -493,7 +493,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                 color: Color(0xFF1F2937),
                 size: 24,
               ),
-              onPressed: () => context.go('/search-result'),
+              onPressed: () => context.go('/search-result?q=${_searchController.text}'),
             ),
           ),
         ),

@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_strings.dart';
 
 class SearchResultPage extends StatefulWidget {
-  const SearchResultPage({super.key});
+  final String? initialQuery;
+
+  const SearchResultPage({super.key, this.initialQuery});
 
   @override
   State<SearchResultPage> createState() => _SearchResultPageState();
@@ -69,6 +71,11 @@ class _SearchResultPageState extends State<SearchResultPage> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    // Jika ada initial query dari route, set ke controller
+    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+      _searchController.text = widget.initialQuery!;
+      _onSearchChanged();
+    }
     _searchController.addListener(_onSearchChanged);
   }
 
