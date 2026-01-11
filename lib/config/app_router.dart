@@ -6,6 +6,7 @@ import '../features/home/presentation/pages/home_page.dart';
 import '../features/home/presentation/pages/search_result_page.dart';
 import '../features/home/presentation/pages/all_search_result_page.dart';
 import '../features/home/presentation/pages/property_detail_page.dart';
+import '../features/home/presentation/pages/maps_property_page.dart';
 
 class AppRouter {
   static const String splashRoute = '/';
@@ -15,6 +16,7 @@ class AppRouter {
   static const String searchResultRoute = '/search-result';
   static const String allSearchResultRoute = '/all-search-result';
   static const String propertyDetailRoute = '/property-detail';
+  static const String mapsPropertyRoute = '/maps-property';
 
   static final GoRouter router = GoRouter(
     initialLocation: splashRoute,
@@ -55,6 +57,12 @@ class AppRouter {
           // Pass property data through extra parameter
           final property = state.extra as Map<String, dynamic>? ?? {};
           return PropertyDetailPage(property: property);
+        },
+      ),
+      GoRoute(
+        path: mapsPropertyRoute,
+        builder: (context, state) {
+          return const MapsPropertyPage();
         },
       ),
     ],

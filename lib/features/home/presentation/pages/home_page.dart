@@ -194,7 +194,7 @@ class _HomePageState extends State<HomePage> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: FilledButton(
-                                onPressed: () {},
+                                onPressed: () => context.go('/maps-property'),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: Colors.transparent,
                                   shadowColor: Colors.transparent,
