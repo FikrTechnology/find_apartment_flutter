@@ -13,57 +13,153 @@ class SearchResultPage extends StatefulWidget {
 
 class _SearchResultPageState extends State<SearchResultPage> {
   late TextEditingController _searchController;
-  List<Map<String, String>> _filteredResults = [];
+  List<Map<String, dynamic>> _filteredResults = [];
 
   // Sample data - dalam aplikasi nyata ini akan dari API
-  final List<Map<String, String>> _allResults = [
+  final List<Map<String, dynamic>> _allResults = [
     {
       'title': 'Modern Apartment Downtown',
-      'price': 'IDR 2.450.000 / month',
+      'location': 'Jakarta',
+      'address': 'Jl. Sudirman No. 123, Jakarta Selatan',
+      'type': 'Apartment',
+      'status': 'Second',
+      'price': 'IDR 2.450.000',
+      'landArea': 'LT 45 m2',
+      'buildingArea': 'LB 40 m2',
+      'postTime': '2 weeks ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Cozy Studio Near Campus',
-      'price': 'IDR 1.850.000 / month',
+      'location': 'Jakarta',
+      'address': 'Jl. Gatot Subroto No. 456, Jakarta Pusat',
+      'type': 'Apartment',
+      'status': 'New',
+      'price': 'IDR 1.850.000',
+      'landArea': 'LT 36 m2',
+      'buildingArea': 'LB 32 m2',
+      'postTime': '1 week ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Luxury 2BR with Pool Access',
-      'price': 'IDR 3.750.000 / month',
+      'location': 'Bekasi',
+      'address': 'Jl. Merdeka No. 789, Bekasi Utara',
+      'type': 'Apartment',
+      'status': 'Second',
+      'price': 'IDR 3.750.000',
+      'landArea': 'LT 50 m2',
+      'buildingArea': 'LB 45 m2',
+      'postTime': '1 month ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Spacious Family Apartment',
-      'price': 'IDR 4.200.000 / month',
+      'location': 'Jakarta',
+      'address': 'Jl. Imam Bonjol No. 321, Jakarta Pusat',
+      'type': 'Apartment',
+      'status': 'New',
+      'price': 'IDR 4.200.000',
+      'landArea': 'LT 55 m2',
+      'buildingArea': 'LB 50 m2',
+      'postTime': '3 days ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Budget-Friendly Apartment',
-      'price': 'IDR 1.450.000 / month',
+      'location': 'Bandung',
+      'address': 'Jl. Braga No. 654, Bandung',
+      'type': 'Apartment',
+      'status': 'Second',
+      'price': 'IDR 1.450.000',
+      'landArea': 'LT 30 m2',
+      'buildingArea': 'LB 28 m2',
+      'postTime': '5 days ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Premium Penthouse Suite',
-      'price': 'IDR 5.650.000 / month',
+      'location': 'Bandung',
+      'address': 'Jl. Cisangkuy No. 987, Bandung',
+      'type': 'Apartment',
+      'status': 'New',
+      'price': 'IDR 5.650.000',
+      'landArea': 'LT 60 m2',
+      'buildingArea': 'LB 55 m2',
+      'postTime': '1 week ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Cozy Apartment with Balcony',
-      'price': 'IDR 2.100.000 / month',
+      'location': 'Jakarta',
+      'address': 'Jl. Senayan No. 147, Jakarta Selatan',
+      'type': 'Apartment',
+      'status': 'Second',
+      'price': 'IDR 2.100.000',
+      'landArea': 'LT 48 m2',
+      'buildingArea': 'LB 42 m2',
+      'postTime': '10 days ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Apartment Near Business District',
-      'price': 'IDR 3.200.000 / month',
+      'location': 'Bekasi',
+      'address': 'Jl. Harapan Indah No. 258, Bekasi Barat',
+      'type': 'Apartment',
+      'status': 'New',
+      'price': 'IDR 3.200.000',
+      'landArea': 'LT 42 m2',
+      'buildingArea': 'LB 38 m2',
+      'postTime': '2 days ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Modern Studio Apartment',
-      'price': 'IDR 1.650.000 / month',
+      'location': 'Jakarta',
+      'address': 'Jl. Menteng No. 159, Jakarta Pusat',
+      'type': 'Apartment',
+      'status': 'New',
+      'price': 'IDR 1.650.000',
+      'landArea': 'LT 25 m2',
+      'buildingArea': 'LB 22 m2',
+      'postTime': '3 weeks ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Elegant 3BR Apartment with Garden',
-      'price': 'IDR 4.850.000 / month',
+      'location': 'Bandung',
+      'address': 'Jl. Riau No. 456, Bandung',
+      'type': 'Apartment',
+      'status': 'Second',
+      'price': 'IDR 4.850.000',
+      'landArea': 'LT 65 m2',
+      'buildingArea': 'LB 60 m2',
+      'postTime': '4 days ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Apartment with Modern Facilities',
-      'price': 'IDR 2.750.000 / month',
+      'location': 'Jakarta',
+      'address': 'Jl. Diponegoro No. 789, Jakarta Pusat',
+      'type': 'Apartment',
+      'status': 'New',
+      'price': 'IDR 2.750.000',
+      'landArea': 'LT 40 m2',
+      'buildingArea': 'LB 35 m2',
+      'postTime': '6 days ago',
+      'isBookmarked': false,
     },
     {
       'title': 'Furnished Apartment Ready to Move',
-      'price': 'IDR 2.900.000 / month',
+      'location': 'Bekasi',
+      'address': 'Jl. Permata No. 321, Bekasi Selatan',
+      'type': 'Apartment',
+      'status': 'New',
+      'price': 'IDR 2.900.000',
+      'landArea': 'LT 44 m2',
+      'buildingArea': 'LB 40 m2',
+      'postTime': '8 days ago',
+      'isBookmarked': false,
     },
   ];
 
@@ -220,10 +316,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                         ),
                         itemBuilder: (context, index) {
                           final result = _filteredResults[index];
-                          return _buildSearchResultItem(
-                            title: result['title']!,
-                            price: result['price']!,
-                          );
+                          return _buildSearchResultItem(result);
                         },
                       ),
                       if (_filteredResults.length > 6) ...[
@@ -274,70 +367,69 @@ class _SearchResultPageState extends State<SearchResultPage> {
     );
   }
 
-  Widget _buildSearchResultItem({
-    required String title,
-    required String price,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        children: [
-          // Image placeholder
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  const Color(0xFF6366F1).withOpacity(0.6),
-                  const Color(0xFF010F81).withOpacity(0.6),
+  Widget _buildSearchResultItem(Map<String, dynamic> item) {
+    return GestureDetector(
+      onTap: () {
+        context.push('/property-detail', extra: item);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          children: [
+            // Image placeholder
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF6366F1).withOpacity(0.6),
+                    const Color(0xFF010F81).withOpacity(0.6),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.apartment,
+                  color: Colors.white.withOpacity(0.4),
+                  size: 24,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item['title'],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item['price'],
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(8),
             ),
-            child: Center(
-              child: Icon(
-                Icons.apartment,
-                color: Colors.white.withOpacity(0.4),
-                size: 24,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  price,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Arrow icon
-          GestureDetector(
-            onTap: () {},
-            child: Container(
+            // Arrow icon
+            Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
@@ -350,8 +442,8 @@ class _SearchResultPageState extends State<SearchResultPage> {
                 size: 20,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

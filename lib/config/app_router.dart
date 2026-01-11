@@ -5,6 +5,7 @@ import '../features/auth/presentation/pages/register_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/home/presentation/pages/search_result_page.dart';
 import '../features/home/presentation/pages/all_search_result_page.dart';
+import '../features/home/presentation/pages/property_detail_page.dart';
 
 class AppRouter {
   static const String splashRoute = '/';
@@ -13,6 +14,7 @@ class AppRouter {
   static const String homeRoute = '/home';
   static const String searchResultRoute = '/search-result';
   static const String allSearchResultRoute = '/all-search-result';
+  static const String propertyDetailRoute = '/property-detail';
 
   static final GoRouter router = GoRouter(
     initialLocation: splashRoute,
@@ -45,6 +47,14 @@ class AppRouter {
         builder: (context, state) {
           final query = state.uri.queryParameters['q'] ?? 'Apartment';
           return AllSearchResultPage(query: query);
+        },
+      ),
+      GoRoute(
+        path: propertyDetailRoute,
+        builder: (context, state) {
+          // Pass property data through extra parameter
+          final property = state.extra as Map<String, dynamic>? ?? {};
+          return PropertyDetailPage(property: property);
         },
       ),
     ],

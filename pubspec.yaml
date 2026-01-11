@@ -25,6 +25,7 @@ dependencies:
   shimmer: ^3.0.0
   google_maps_flutter: ^2.5.0
   geolocator: ^10.1.0
+  carousel_slider: ^5.1.1
 
 dev_dependencies:
   flutter_test:

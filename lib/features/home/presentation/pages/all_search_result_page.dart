@@ -159,16 +159,6 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
     });
   }
 
-  void _resetFilters() {
-    setState(() {
-      _selectedStatus.clear();
-      _selectedLocation.clear();
-      _selectedType.clear();
-      _priceRange = const RangeValues(0, 100000000);
-      _applyFilters();
-    });
-  }
-
   void _showFilterBottomSheet() {
     // Local state untuk bottom sheet
     Set<String> tempSelectedStatus = Set.from(_selectedStatus);
@@ -598,21 +588,25 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
   }
 
   Widget _buildResultCard(Map<String, dynamic> item) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE5E7EB),
-          width: 1,
+    return GestureDetector(
+      onTap: () {
+        context.push('/property-detail', extra: item);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE5E7EB),
+            width: 1,
+          ),
         ),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image - Left side
-          Container(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image - Left side
+            Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
@@ -736,7 +730,8 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
               size: 22,
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
