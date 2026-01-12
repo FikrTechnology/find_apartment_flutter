@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'config/app_router.dart';
+import 'core/api/api_client.dart';
 import 'core/theme/app_theme.dart';
 import 'features/splash/presentation/bloc/splash_bloc.dart';
 import 'features/auth/presentation/bloc/login_bloc.dart';
@@ -15,16 +16,18 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiClient = ApiClient();
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
           create: (context) => SplashBloc(),
         ),
         BlocProvider(
-          create: (context) => LoginBloc(),
+          create: (context) => LoginBloc(apiClient: apiClient),
         ),
         BlocProvider(
-          create: (context) => RegisterBloc(),
+          create: (context) => RegisterBloc(apiClient: apiClient),
         ),
       ],
       child: MaterialApp.router(

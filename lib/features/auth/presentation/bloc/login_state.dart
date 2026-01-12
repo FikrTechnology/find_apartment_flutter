@@ -13,7 +13,10 @@ class LoginLoading extends LoginState {
 }
 
 class LoginSuccess extends LoginState {
-  const LoginSuccess();
+  final User user;
+  final String accessToken;
+
+  const LoginSuccess({required this.user, required this.accessToken});
 }
 
 class LoginError extends LoginState {

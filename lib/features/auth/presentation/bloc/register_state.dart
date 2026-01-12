@@ -13,7 +13,10 @@ class RegisterLoading extends RegisterState {
 }
 
 class RegisterSuccess extends RegisterState {
-  const RegisterSuccess();
+  final User user;
+  final String accessToken;
+
+  const RegisterSuccess({required this.user, required this.accessToken});
 }
 
 class RegisterError extends RegisterState {
