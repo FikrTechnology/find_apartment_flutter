@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/remember_me_service.dart';
 import '../bloc/login_bloc.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/divider_with_text.dart';
@@ -18,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late GlobalKey<FormState> _formKey;
+  late RememberMeService _rememberMeService;
   bool _rememberMe = false;
   bool _isGoogleLoading = false;
   bool _obscurePassword = true;
@@ -28,6 +30,26 @@ class _LoginPageState extends State<LoginPage> {
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
     _formKey = GlobalKey<FormState>();
+    _rememberMeService = RememberMeService();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    try {
+      final isRemembered = await _rememberMeService.isRememberMeEnabled();
+      if (isRemembered) {
+        final credentials = await _rememberMeService.getCredentials();
+        if (mounted && credentials != null) {
+          setState(() {
+            _emailController.text = credentials['email'] ?? '';
+            _passwordController.text = credentials['password'] ?? '';
+            _rememberMe = true;
+          });
+        }
+      }
+    } catch (e) {
+      // Silent fail - no credentials saved
+    }
   }
 
   @override
@@ -256,6 +278,15 @@ class _LoginPageState extends State<LoginPage> {
                           setState(() {
                             _rememberMe = value ?? false;
                           });
+                          if (_rememberMe && _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
+                            _rememberMeService.saveCredentials(
+                              email: _emailController.text,
+                              password: _passwordController.text,
+                              rememberMe: true,
+                            );
+                          } else if (!_rememberMe) {
+                            _rememberMeService.clearCredentials();
+                          }
                         },
                         activeColor: const Color(0xFF6366F1),
                         shape: RoundedRectangleBorder(

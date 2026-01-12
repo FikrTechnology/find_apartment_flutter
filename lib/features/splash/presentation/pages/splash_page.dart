@@ -50,13 +50,21 @@ class _SplashPageState extends State<SplashPage>
     context.go('/login');
   }
 
+  void _navigateToHome() {
+    context.go('/home');
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<SplashBloc, SplashState>(
       listenWhen: (previous, current) => current is SplashCompleted,
       listener: (context, state) {
         if (state is SplashCompleted) {
-          _navigateToLogin();
+          if (state.isLoggedIn) {
+            _navigateToHome();
+          } else {
+            _navigateToLogin();
+          }
         }
       },
       child: Scaffold(

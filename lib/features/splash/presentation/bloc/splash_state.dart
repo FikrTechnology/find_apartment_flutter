@@ -13,7 +13,8 @@ class SplashLoading extends SplashState {
 }
 
 class SplashCompleted extends SplashState {
-  const SplashCompleted();
+  final bool isLoggedIn;
+  const SplashCompleted({this.isLoggedIn = false});
 }
 
 class SplashError extends SplashState {

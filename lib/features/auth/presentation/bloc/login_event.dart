@@ -19,3 +19,7 @@ class LoginWithEmailEvent extends LoginEvent {
 class LoginWithGoogleEvent extends LoginEvent {
   const LoginWithGoogleEvent();
 }
+
+class LogoutEvent extends LoginEvent {
+  const LogoutEvent();
+}
