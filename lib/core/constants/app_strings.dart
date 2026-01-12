@@ -1,6 +1,6 @@
 class AppStrings {
   // ==================== App General ====================
-  static const String appName = 'Find Apartment';
+  static const String appName = 'Rentara';
 
   // ==================== Splash Screen ====================
   static const String splashTitle = 'Find Your Dream Home';
@@ -8,8 +8,8 @@ class AppStrings {
   static const String getStarted = 'Get Started';
 
   // ==================== Auth - Login ====================
-  static const String loginTitle = 'Welcome Back';
-  static const String loginSubtitle = 'Sign in to your account';
+  static const String loginTitle = 'Welcome Back to Rentara';
+  static const String loginSubtitle = 'Access curated listings and manage your property search seamlessly';
   static const String email = 'Email';
   static const String emailHint = 'Enter your email';
   static const String password = 'Password';
@@ -20,8 +20,8 @@ class AppStrings {
   static const String signUp = 'Sign Up';
 
   // ==================== Auth - Register ====================
-  static const String registerTitle = 'Create Account';
-  static const String registerSubtitle = 'Join us and find your dream home';
+  static const String registerTitle = 'Discover Properties with Confidence';
+  static const String registerSubtitle = 'Create an account to access curated listings and smart property tools.';
   static const String fullName = 'Full Name';
   static const String fullNameHint = 'Enter your full name';
   static const String confirmPassword = 'Confirm Password';

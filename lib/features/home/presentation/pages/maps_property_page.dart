@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/location_dropdown.dart';
 
 class MapsPropertyPage extends StatefulWidget {
   const MapsPropertyPage({super.key});
@@ -452,23 +453,14 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: ['Jakarta', 'Bekasi', 'Bandung'].map((location) {
-                      return FilterChip(
-                        label: Text(location),
-                        selected: tempSelectedLocation.contains(location),
-                        onSelected: (selected) {
-                          setModalState(() {
-                            if (selected) {
-                              tempSelectedLocation.add(location);
-                            } else {
-                              tempSelectedLocation.remove(location);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
+                  LocationDropdown(
+                    locations: ['Jakarta', 'Bekasi', 'Bandung', 'Surabaya', 'Medan', 'Semarang'],
+                    selectedLocations: tempSelectedLocation,
+                    onChanged: (selected) {
+                      setModalState(() {
+                        tempSelectedLocation = selected;
+                      });
+                    },
                   ),
                   const SizedBox(height: 20),
 

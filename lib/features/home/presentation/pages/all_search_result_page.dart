@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../widgets/location_dropdown.dart';
 
 class AllSearchResultPage extends StatefulWidget {
   final String query;
@@ -291,39 +292,14 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: ['Jakarta', 'Bekasi', 'Bandung'].map((location) {
-                            final isSelected = tempSelectedLocation.contains(location);
-                            return FilterChip(
-                              label: Text(location),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setModalState(() {
-                                  if (selected) {
-                                    tempSelectedLocation.add(location);
-                                  } else {
-                                    tempSelectedLocation.remove(location);
-                                  }
-                                });
-                              },
-                              avatar: isSelected
-                                  ? const Icon(Icons.check, color: Colors.white, size: 16)
-                                  : null,
-                              backgroundColor: const Color(0xFFF3F4F6),
-                              selectedColor: const Color(0xFF6366F1),
-                              elevation: isSelected ? 4 : 1,
-                              labelStyle: TextStyle(
-                                color: isSelected ? Colors.white : const Color(0xFF6B7280),
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
-                              side: isSelected
-                                  ? const BorderSide(color: Color(0xFF6366F1), width: 0)
-                                  : const BorderSide(color: Color(0xFFE5E7EB), width: 1),
-                            );
-                          }).toList(),
+                        LocationDropdown(
+                          locations: ['Jakarta', 'Bekasi', 'Bandung', 'Surabaya', 'Medan', 'Semarang'],
+                          selectedLocations: tempSelectedLocation,
+                          onChanged: (selected) {
+                            setModalState(() {
+                              tempSelectedLocation = selected;
+                            });
+                          },
                         ),
                         const SizedBox(height: 24),
                         // Type Filter
