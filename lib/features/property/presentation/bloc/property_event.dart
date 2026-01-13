@@ -14,6 +14,10 @@ class AddPropertyEvent extends PropertyEvent {
   final String fullAddress;
   final String imageBase64;
   final String imageName;
+  final String type;
+  final String status;
+  final String buildingArea;
+  final String landArea;
 
   const AddPropertyEvent({
     required this.propertyName,
@@ -22,6 +26,10 @@ class AddPropertyEvent extends PropertyEvent {
     required this.fullAddress,
     required this.imageBase64,
     required this.imageName,
+    required this.type,
+    required this.status,
+    required this.buildingArea,
+    required this.landArea,
   });
 
   @override
@@ -32,6 +40,10 @@ class AddPropertyEvent extends PropertyEvent {
     fullAddress,
     imageBase64,
     imageName,
+    type,
+    status,
+    buildingArea,
+    landArea,
   ];
 }
 

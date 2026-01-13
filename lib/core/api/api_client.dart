@@ -86,21 +86,46 @@ class ApiClient {
     try {
       _logger.i('Adding property: ${request.propertyName}');
       
-      final headers = <String, dynamic>{};
+      final headers = <String, dynamic>{
+        'Content-Type': 'application/json',
+      };
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
         _logger.d('Using Bearer token for add property');
       }
       
+      final requestData = request.toJson();
+      
+      // Log request details
+      _logger.i('=== ADD PROPERTY REQUEST ===');
+      _logger.i('Type: ${requestData['type']}');
+      _logger.i('Status: ${requestData['status']}');
+      _logger.i('Name: ${requestData['name']}');
+      _logger.i('Description: ${requestData['description']}');
+      _logger.i('Address: ${requestData['address']}');
+      _logger.i('Price: ${requestData['price']} (type: ${requestData['price'].runtimeType})');
+      _logger.i('Building Area: ${requestData['building_area']} (type: ${requestData['building_area'].runtimeType})');
+      _logger.i('Land Area: ${requestData['land_area']} (type: ${requestData['land_area'].runtimeType})');
+      _logger.i('Image first 100 chars: ${(requestData['image'] as String).substring(0, 100)}');
+      _logger.i('Image length: ${(requestData['image'] as String).length} chars');
+      _logger.i('========================');
+      
       final response = await _dio.post(
-        '/properties/add',
-        data: request.toJson(),
+        '/properties',
+        data: requestData,
         options: Options(headers: headers),
       );
+      
       _logger.i('Property added successfully: ${request.propertyName}');
+      _logger.i('Response: ${response.data}');
       return AddPropertyResponse.fromJson(response.data);
     } on DioException catch (e) {
-      _logger.e('Add property error: ${_handleDioException(e)}');
+      _logger.e('=== ADD PROPERTY ERROR ===');
+      _logger.e('DioException Type: ${e.type}');
+      _logger.e('Status Code: ${e.response?.statusCode}');
+      _logger.e('Response Data: ${e.response?.data}');
+      _logger.e('Error Message: ${e.message}');
+      _logger.e('========================');
       throw _handleDioException(e);
     } catch (e) {
       _logger.e('Unexpected error during add property: $e');

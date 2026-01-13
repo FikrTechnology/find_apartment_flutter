@@ -19,7 +19,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
   late ScrollController _scrollController;
 
   // Filter state
-  RangeValues _priceRange = const RangeValues(0, 100000000);
+  RangeValues _priceRange = const RangeValues(0, 50000000000);
   Set<String> _selectedStatus = {};
   Set<String> _selectedLocation = {};
   Set<String> _selectedType = {};
@@ -60,7 +60,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
     // Only send filter params if they're actually set by user
     final hasFilters = _selectedStatus.isNotEmpty || 
                       _selectedType.isNotEmpty ||
-                      (_priceRange.start > 0 || _priceRange.end < 100000000);
+                      (_priceRange.start > 0 || _priceRange.end < 50000000000);
     
     context.read<PropertyListBloc>().add(
       FetchPropertiesEvent(
@@ -68,7 +68,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
         status: _selectedStatus.isNotEmpty ? _selectedStatus.first : null,
         type: _selectedType.isNotEmpty ? _selectedType.first : null,
         priceMin: hasFilters && _priceRange.start > 0 ? _priceRange.start.toInt() : null,
-        priceMax: hasFilters && _priceRange.end < 100000000 ? _priceRange.end.toInt() : null,
+        priceMax: hasFilters && _priceRange.end < 50000000000 ? _priceRange.end.toInt() : null,
       ),
     );
   }
@@ -130,7 +130,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                           tempSelectedStatus.clear();
                           tempSelectedLocation.clear();
                           tempSelectedType.clear();
-                          tempPriceRange = const RangeValues(0, 100000000);
+                          tempPriceRange = const RangeValues(0, 50000000000);
                         });
                       },
                       child: const Text(
@@ -202,7 +202,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                         RangeSlider(
                           values: tempPriceRange,
                           min: 0,
-                          max: 100000000,
+                          max: 50000000000,
                           divisions: 100,
                           labels: RangeLabels(
                             'IDR ${tempPriceRange.start.toInt()}',

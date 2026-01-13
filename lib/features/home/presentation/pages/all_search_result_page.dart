@@ -39,7 +39,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
     _selectedStatus.clear();
     _selectedLocation.clear();
     _selectedType.clear();
-    _priceRange = const RangeValues(0, 100000000);
+    _priceRange = const RangeValues(0, 50000000000);
     
     // Schedule load on next frame - ensures context is ready
     Future.microtask(() {
@@ -74,7 +74,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
     // Only send filter params if they're actually set by user
     final hasFilters = _selectedStatus.isNotEmpty || 
                       _selectedType.isNotEmpty ||
-                      (_priceRange.start > 0 || _priceRange.end < 100000000);
+                      (_priceRange.start > 0 || _priceRange.end < 50000000000);
     
     print('🔍 AllSearchResultPage: _loadProperties - search="$searchText", hasFilters=$hasFilters');
     
@@ -84,7 +84,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
         status: _selectedStatus.isNotEmpty ? _selectedStatus.first : null,
         type: _selectedType.isNotEmpty ? _selectedType.first : null,
         priceMin: hasFilters && _priceRange.start > 0 ? _priceRange.start.toInt() : null,
-        priceMax: hasFilters && _priceRange.end < 100000000 ? _priceRange.end.toInt() : null,
+        priceMax: hasFilters && _priceRange.end < 50000000000 ? _priceRange.end.toInt() : null,
       ),
     );
   }
@@ -145,7 +145,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                           tempSelectedStatus.clear();
                           tempSelectedLocation.clear();
                           tempSelectedType.clear();
-                          tempPriceRange = const RangeValues(0, 100000000);
+                          tempPriceRange = const RangeValues(0, 50000000000);
                         });
                       },
                       child: const Text(
@@ -305,7 +305,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                         RangeSlider(
                           values: tempPriceRange,
                           min: 0,
-                          max: 100000000,
+                          max: 50000000000,
                           divisions: 100,
                           onChanged: (RangeValues values) {
                             setModalState(() {

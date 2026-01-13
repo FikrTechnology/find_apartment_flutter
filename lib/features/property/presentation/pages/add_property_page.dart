@@ -18,9 +18,13 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
   late TextEditingController _addressController;
+  late TextEditingController _buildingAreaController;
+  late TextEditingController _landAreaController;
 
   File? _selectedImage;
   String? _selectedImageName;
+  String? _selectedType;
+  String? _selectedStatus;
   bool _isSubmitting = false;
 
   @override
@@ -30,6 +34,8 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     _priceController = TextEditingController();
     _descriptionController = TextEditingController();
     _addressController = TextEditingController();
+    _buildingAreaController = TextEditingController();
+    _landAreaController = TextEditingController();
   }
 
   @override
@@ -38,6 +44,8 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     _priceController.dispose();
     _descriptionController.dispose();
     _addressController.dispose();
+    _buildingAreaController.dispose();
+    _landAreaController.dispose();
     super.dispose();
   }
 
@@ -110,6 +118,20 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
       return;
     }
 
+    if (_selectedType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Harap pilih tipe properti')),
+      );
+      return;
+    }
+
+    if (_selectedStatus == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Harap pilih status properti')),
+      );
+      return;
+    }
+
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Harap pilih foto properti')),
@@ -156,6 +178,9 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         return;
       }
 
+      print('📷 Image Base64 first 100 chars: ${imageBase64.substring(0, 100)}');
+      print('📷 Image Base64 length: ${imageBase64.length}');
+
       if (mounted) {
         context.read<PropertyBloc>().add(
           AddPropertyEvent(
@@ -165,6 +190,10 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
             fullAddress: _addressController.text.trim(),
             imageBase64: imageBase64,
             imageName: _selectedImageName ?? 'image.jpg',
+            type: _selectedType!,
+            status: _selectedStatus!,
+            buildingArea: _buildingAreaController.text.trim(),
+            landArea: _landAreaController.text.trim(),
           ),
         );
       }
@@ -297,6 +326,76 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
                     ),
                     const SizedBox(height: 28),
 
+                    // Property Type Dropdown
+                    Text(
+                      'Tipe Properti',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: _selectedType,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                      ),
+                      items: ['rumah', 'apartemen', 'ruko', 'hotel', 'villa']
+                          .map((type) => DropdownMenuItem(
+                                value: type,
+                                child: Text(type[0].toUpperCase() + type.substring(1)),
+                              ))
+                          .toList(),
+                      onChanged: _isSubmitting ? null : (value) {
+                        setState(() => _selectedType = value);
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Tipe properti tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Property Status Dropdown
+                    Text(
+                      'Status',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: _selectedStatus,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                      ),
+                      items: ['new', 'second']
+                          .map((status) => DropdownMenuItem(
+                                value: status,
+                                child: Text(status == 'new' ? 'Baru' : 'Bekas'),
+                              ))
+                          .toList(),
+                      onChanged: _isSubmitting ? null : (value) {
+                        setState(() => _selectedStatus = value);
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Status tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
                     // Property Name Field
                     Text(
                       'Nama Properti',
@@ -348,13 +447,21 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
                           vertical: 12,
                         ),
                         prefixText: 'Rp ',
+                        helperText: 'Maksimal 50 Miliar',
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Harga tidak boleh kosong';
                         }
-                        if (int.tryParse(value) == null) {
+                        final price = int.tryParse(value);
+                        if (price == null) {
                           return 'Harga harus berupa angka';
+                        }
+                        if (price > 50000000000) {
+                          return 'Harga maksimal 50 Miliar';
+                        }
+                        if (price <= 0) {
+                          return 'Harga harus lebih dari 0';
                         }
                         return null;
                       },
@@ -419,6 +526,72 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
                         }
                         if (value.length < 10) {
                           return 'Alamat terlalu singkat';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Building Area Field (Luas Bangunan)
+                    Text(
+                      'Luas Bangunan (m²)',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _buildingAreaController,
+                      enabled: !_isSubmitting,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Contoh: 150',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        suffixText: 'm²',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Luas bangunan tidak boleh kosong';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Luas bangunan harus berupa angka';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Land Area Field (Luas Tanah)
+                    Text(
+                      'Luas Tanah (m²)',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _landAreaController,
+                      enabled: !_isSubmitting,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Contoh: 200',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        suffixText: 'm²',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Luas tanah tidak boleh kosong';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Luas tanah harus berupa angka';
                         }
                         return null;
                       },
