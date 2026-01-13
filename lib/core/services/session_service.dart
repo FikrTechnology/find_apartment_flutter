@@ -51,7 +51,11 @@ class SessionService {
   Future<String?> getToken() async {
     try {
       final token = await _storage.read(key: _tokenKey);
-      _logger.d('Retrieved token: ${token != null ? '${token.substring(0, 20)}...' : 'null'}');
+      if (token != null) {
+        _logger.d('Retrieved token: ${token.length > 20 ? '${token.substring(0, 20)}...' : token}');
+      } else {
+        _logger.d('No token found');
+      }
       return token;
     } catch (e) {
       _logger.e('Failed to get token: $e');

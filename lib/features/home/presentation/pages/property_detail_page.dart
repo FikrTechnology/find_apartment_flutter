@@ -95,7 +95,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                 color: Color(0xFF1F2937),
                 size: 24,
               ),
-              onPressed: () => context.pop(),
+              onPressed: () => context.go('/home'),
             ),
           ),
         ),

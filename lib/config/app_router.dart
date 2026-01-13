@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/splash/presentation/pages/splash_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
@@ -7,6 +8,7 @@ import '../features/home/presentation/pages/search_result_page.dart';
 import '../features/home/presentation/pages/all_search_result_page.dart';
 import '../features/home/presentation/pages/property_detail_page.dart';
 import '../features/home/presentation/pages/maps_property_page.dart';
+import '../features/property/presentation/pages/add_property_page.dart';
 
 class AppRouter {
   static const String splashRoute = '/';
@@ -17,9 +19,17 @@ class AppRouter {
   static const String allSearchResultRoute = '/all-search-result';
   static const String propertyDetailRoute = '/property-detail';
   static const String mapsPropertyRoute = '/maps-property';
+  static const String addPropertyRoute = '/add-property';
 
   static final GoRouter router = GoRouter(
     initialLocation: splashRoute,
+    errorPageBuilder: (context, state) => MaterialPage(
+      child: Scaffold(
+        body: Center(
+          child: Text('Error: ${state.error}'),
+        ),
+      ),
+    ),
     routes: [
       GoRoute(
         path: splashRoute,
@@ -43,6 +53,15 @@ class AppRouter {
           final query = state.uri.queryParameters['q'] ?? '';
           return SearchResultPage(initialQuery: query);
         },
+        routes: [
+          GoRoute(
+            path: 'detail',
+            builder: (context, state) {
+              final property = state.extra as Map<String, dynamic>? ?? {};
+              return PropertyDetailPage(property: property);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: allSearchResultRoute,
@@ -50,6 +69,15 @@ class AppRouter {
           final query = state.uri.queryParameters['q'] ?? 'Apartment';
           return AllSearchResultPage(query: query);
         },
+        routes: [
+          GoRoute(
+            path: 'detail',
+            builder: (context, state) {
+              final property = state.extra as Map<String, dynamic>? ?? {};
+              return PropertyDetailPage(property: property);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: propertyDetailRoute,
@@ -63,6 +91,21 @@ class AppRouter {
         path: mapsPropertyRoute,
         builder: (context, state) {
           return const MapsPropertyPage();
+        },
+        routes: [
+          GoRoute(
+            path: 'detail',
+            builder: (context, state) {
+              final property = state.extra as Map<String, dynamic>? ?? {};
+              return PropertyDetailPage(property: property);
+            },
+          ),
+        ],
+      ),
+      GoRoute(
+        path: addPropertyRoute,
+        builder: (context, state) {
+          return const AddPropertyPage();
         },
       ),
     ],

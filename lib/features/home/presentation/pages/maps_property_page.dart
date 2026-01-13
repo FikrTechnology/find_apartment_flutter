@@ -587,7 +587,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
   Widget _buildResultCard(Map<String, dynamic> item) {
     return GestureDetector(
       onTap: () {
-        context.push('/property-detail', extra: item);
+        context.push('/maps-property/detail', extra: item);
       },
       child: Container(
         decoration: BoxDecoration(

@@ -47,11 +47,19 @@ class _SplashPageState extends State<SplashPage>
   }
 
   void _navigateToLogin() {
-    context.go('/login');
+    try {
+      context.go('/login');
+    } catch (e) {
+      print('Navigation error to login: $e');
+    }
   }
 
   void _navigateToHome() {
-    context.go('/home');
+    try {
+      context.go('/home');
+    } catch (e) {
+      print('Navigation error to home: $e');
+    }
   }
 
   @override
@@ -60,11 +68,14 @@ class _SplashPageState extends State<SplashPage>
       listenWhen: (previous, current) => current is SplashCompleted,
       listener: (context, state) {
         if (state is SplashCompleted) {
-          if (state.isLoggedIn) {
-            _navigateToHome();
-          } else {
-            _navigateToLogin();
-          }
+          // Add a small delay to ensure state is fully propagated
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (state.isLoggedIn) {
+              _navigateToHome();
+            } else {
+              _navigateToLogin();
+            }
+          });
         }
       },
       child: Scaffold(

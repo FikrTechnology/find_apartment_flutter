@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'models/auth_models.dart';
 import 'models/login_models.dart';
+import 'models/property_models.dart';
 
 class ApiClient {
   static const String baseUrl = 'https://api-test.linkedinindonesia.com/api';
@@ -72,6 +73,24 @@ class ApiClient {
       throw _handleDioException(e);
     } catch (e) {
       _logger.e('Unexpected error during login: $e');
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  Future<AddPropertyResponse> addProperty(AddPropertyRequest request) async {
+    try {
+      _logger.i('Adding property: ${request.propertyName}');
+      final response = await _dio.post(
+        '/properties/add',
+        data: request.toJson(),
+      );
+      _logger.i('Property added successfully: ${request.propertyName}');
+      return AddPropertyResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      _logger.e('Add property error: ${_handleDioException(e)}');
+      throw _handleDioException(e);
+    } catch (e) {
+      _logger.e('Unexpected error during add property: $e');
       throw Exception('Unexpected error: $e');
     }
   }

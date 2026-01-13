@@ -566,7 +566,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
   Widget _buildResultCard(Map<String, dynamic> item) {
     return GestureDetector(
       onTap: () {
-        context.push('/property-detail', extra: item);
+        context.push('/all-search-result/detail', extra: item);
       },
       child: Container(
         decoration: BoxDecoration(

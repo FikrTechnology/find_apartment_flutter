@@ -51,13 +51,21 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       _logger.i('Login success, user: ${response.data.user.name}');
       
-      await sessionService.saveSession(
+      final sessionSaved = await sessionService.saveSession(
         token: response.data.accessToken,
         userId: response.data.user.id.toString(),
         userName: response.data.user.name,
         userEmail: response.data.user.email,
       );
-      _logger.i('Session saved successfully');
+      
+      if (sessionSaved) {
+        _logger.i('Session saved successfully');
+        // Verify session was saved
+        final tokenCheck = await sessionService.getToken();
+        _logger.i('Session verification: token retrieved = ${tokenCheck != null}');
+      } else {
+        _logger.e('Failed to save session');
+      }
 
       if (event.rememberMe) {
         await rememberMeService.saveCredentials(

@@ -370,7 +370,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
   Widget _buildSearchResultItem(Map<String, dynamic> item) {
     return GestureDetector(
       onTap: () {
-        context.push('/property-detail', extra: item);
+        context.push('/search-result/detail', extra: item);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),

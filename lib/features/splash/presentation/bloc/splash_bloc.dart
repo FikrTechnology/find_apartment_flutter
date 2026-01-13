@@ -21,7 +21,8 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     emit(const SplashLoading());
     
     try {
-      await Future.delayed(const Duration(seconds: 3));
+      // Reduced delay for better UX
+      await Future.delayed(const Duration(milliseconds: 500));
       
       final isSessionActive = await _sessionService.isSessionActive();
       _logger.i('Session active: $isSessionActive');
