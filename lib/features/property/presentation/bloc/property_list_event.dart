@@ -81,7 +81,7 @@ class SearchPropertiesEvent extends PropertyListEvent {
 }
 
 class FetchLocationClusterEvent extends PropertyListEvent {
-  final List<MapBound> bounds;
+  final List<MapBounds> bounds;
   final int? limit;
 
   const FetchLocationClusterEvent({

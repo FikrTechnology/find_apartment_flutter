@@ -152,9 +152,14 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
         final nextPage = (_pagination?.currentPage ?? 1) + 1;
         final token = await _sessionService.getToken();
 
-        // Use perPage from pagination, let API use its default if not available
+        // Use perPage from pagination if available, otherwise null (let API decide)
+        int? perPage;
+        if (_pagination?.perPage != null && _pagination!.perPage > 0) {
+          perPage = _pagination!.perPage;
+        }
+
         final request = PropertyListRequest(
-          perPage: _pagination?.perPage,
+          perPage: perPage,
         );
 
         final response = await _apiClient.getProperties(request, token: token);
@@ -245,7 +250,7 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
 
       final request = LocationClusterRequest(
         bounds: event.bounds,
-        limit: event.limit,
+        limit: event.limit ?? 500,
       );
 
       final response = await _apiClient.getLocationCluster(

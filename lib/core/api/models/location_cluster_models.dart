@@ -1,7 +1,76 @@
 import 'property_list_models.dart';
 
 // ============================================================================
-// PROPERTIES SEARCH (POST) - Support Bulk IDs & Complex Filters
+// LOCATION CLUSTER (POST) - Server-side clustering for map optimization
+// ============================================================================
+
+class MapBounds {
+  final double swLatitude;
+  final double swLongitude;
+  final double neLatitude;
+  final double neLongitude;
+
+  MapBounds({
+    required this.swLatitude,
+    required this.swLongitude,
+    required this.neLatitude,
+    required this.neLongitude,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'sw_latitude': swLatitude,
+      'sw_longitude': swLongitude,
+      'ne_latitude': neLatitude,
+      'ne_longitude': neLongitude,
+    };
+  }
+}
+
+class LocationClusterRequest {
+  final List<MapBounds> bounds;
+  final int limit;
+
+  LocationClusterRequest({
+    required this.bounds,
+    this.limit = 500,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'bounds': bounds.map((b) => b.toJson()).toList(),
+      'limit': limit,
+    };
+  }
+}
+
+class LocationClusterResponse {
+  final bool success;
+  final String message;
+  final List<int> propertyIds;
+
+  LocationClusterResponse({
+    required this.success,
+    required this.message,
+    required this.propertyIds,
+  });
+
+  factory LocationClusterResponse.fromJson(Map<String, dynamic> json) {
+    List<int> ids = [];
+    
+    // Response data is directly a list of IDs
+    if (json['data'] is List) {
+      ids = List<int>.from(json['data'] as List);
+    }
+    
+    return LocationClusterResponse(
+      success: json['meta']?['code'] == 200,
+      message: json['meta']?['message'] ?? 'Unknown error',
+      propertyIds: ids,
+    );
+  }
+}
+
 // ============================================================================
 
 class PropertySearchRequest {
@@ -71,16 +140,41 @@ class PropertySearchResponse {
   });
 
   factory PropertySearchResponse.fromJson(Map<String, dynamic> json) {
+    List<Property> properties = [];
+    PaginationMeta? pagination;
+
+    // Handle nested data structure: {data: {data: [...], pagination: {...}}}
+    if (json['data'] is Map) {
+      final dataMap = json['data'] as Map<String, dynamic>;
+      
+      // Get properties from nested data.data
+      if (dataMap['data'] is List) {
+        properties = (dataMap['data'] as List)
+            .map((item) => Property.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      
+      // Get pagination from nested data.pagination
+      if (dataMap['pagination'] != null) {
+        pagination = PaginationMeta.fromJson(dataMap['pagination']);
+      }
+    } 
+    // Fallback: handle flat structure where data is directly a list
+    else if (json['data'] is List) {
+      properties = (json['data'] as List)
+          .map((item) => Property.fromJson(item as Map<String, dynamic>))
+          .toList();
+      
+      if (json['pagination'] != null) {
+        pagination = PaginationMeta.fromJson(json['pagination']);
+      }
+    }
+
     return PropertySearchResponse(
-      success: json['success'] ?? false,
+      success: json['meta']?['code'] == 200 || json['success'] ?? false,
       message: json['meta']?['message'] ?? json['message'] ?? 'Unknown error',
-      data: (json['data'] as List?)
-              ?.map((item) => Property.fromJson(item as Map<String, dynamic>))
-              .toList() ??
-          [],
-      pagination: json['pagination'] != null
-          ? PaginationMeta.fromJson(json['pagination'])
-          : null,
+      data: properties,
+      pagination: pagination,
     );
   }
 }
@@ -89,79 +183,4 @@ class PropertySearchResponse {
 // LOCATIONS CLUSTER (POST) - Get Property IDs by Map Clusters
 // ============================================================================
 
-class LocationClusterRequest {
-  final List<MapBound> bounds;
-  final int? limit;
-
-  LocationClusterRequest({
-    required this.bounds,
-    this.limit = 500,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'bounds': bounds.map((b) => b.toJson()).toList(),
-      'limit': limit ?? 500,
-    };
-  }
-}
-
-class MapBound {
-  final double swLatitude;
-  final double swLongitude;
-  final double neLatitude;
-  final double neLongitude;
-
-  MapBound({
-    required this.swLatitude,
-    required this.swLongitude,
-    required this.neLatitude,
-    required this.neLongitude,
-  });
-
-  factory MapBound.fromJson(Map<String, dynamic> json) {
-    return MapBound(
-      swLatitude: (json['sw_latitude'] as num?)?.toDouble() ?? 0.0,
-      swLongitude: (json['sw_longitude'] as num?)?.toDouble() ?? 0.0,
-      neLatitude: (json['ne_latitude'] as num?)?.toDouble() ?? 0.0,
-      neLongitude: (json['ne_longitude'] as num?)?.toDouble() ?? 0.0,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'sw_latitude': swLatitude,
-      'sw_longitude': swLongitude,
-      'ne_latitude': neLatitude,
-      'ne_longitude': neLongitude,
-    };
-  }
-}
-
-class LocationClusterResponse {
-  final bool success;
-  final String message;
-  final List<int> propertyIds; // List of property IDs dalam cluster
-
-  LocationClusterResponse({
-    required this.success,
-    required this.message,
-    required this.propertyIds,
-  });
-
-  factory LocationClusterResponse.fromJson(Map<String, dynamic> json) {
-    final metaCode = json['meta']?['code'];
-    final success = metaCode == 200 || (json['success'] ?? false);
-    
-    return LocationClusterResponse(
-      success: success,
-      message: json['meta']?['message'] ?? json['message'] ?? 'Unknown error',
-      propertyIds: (json['data'] as List?)?.map((id) {
-            if (id is int) return id;
-            if (id is String) return int.tryParse(id) ?? 0;
-            return 0;
-          }).toList() ??
-          [],
-    );
-  }
-}
+// REMOVED - Use LocationClusterRequest and LocationClusterResponse above instead

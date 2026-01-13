@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../property/presentation/bloc/property_list_bloc.dart';
 import '../../../../core/api/models/property_list_models.dart';
+import '../../../../core/api/models/location_cluster_models.dart';
 
 class MapsPropertyPage extends StatefulWidget {
   const MapsPropertyPage({super.key});
@@ -24,6 +25,8 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
   Set<String> _selectedLocation = {};
   Set<String> _selectedType = {};
   bool _isLoadingMore = false;
+  bool _isClusterLoading = false;
+  List<int> _clusterPropertyIds = [];
   
   // Default center (Jakarta)
   static const LatLng _defaultCenter = LatLng(-6.2088, 106.8456);
@@ -38,7 +41,53 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
     // Setup infinite scroll listener
     _scrollController.addListener(_onScroll);
     
-    _loadProperties();
+    // Initial load with default bounds
+    _loadClusterForDefaultArea();
+  }
+
+  void _loadClusterForDefaultArea() {
+    // Load cluster for default Jakarta area
+    final bounds = MapBounds(
+      swLatitude: -6.250477,
+      swLongitude: 106.797414,
+      neLatitude: -6.106749,
+      neLongitude: 106.910196,
+    );
+    
+    _loadCluster([bounds]);
+  }
+
+  void _loadCluster(List<MapBounds> bounds) {
+    if (_isClusterLoading) return;
+    
+    setState(() => _isClusterLoading = true);
+    
+    context.read<PropertyListBloc>().add(
+      FetchLocationClusterEvent(bounds: bounds),
+    );
+  }
+
+  void _onMapMove(MapCamera camera) {
+    // Get visible bounds from map camera
+    final bounds = _getVisibleBounds(camera);
+    if (bounds != null) {
+      _loadCluster([bounds]);
+    }
+  }
+
+  MapBounds? _getVisibleBounds(MapCamera camera) {
+    try {
+      final visibleBounds = camera.visibleBounds;
+      return MapBounds(
+        swLatitude: visibleBounds.south,
+        swLongitude: visibleBounds.west,
+        neLatitude: visibleBounds.north,
+        neLongitude: visibleBounds.east,
+      );
+    } catch (e) {
+      print('Error getting visible bounds: $e');
+      return null;
+    }
   }
 
   void _onScroll() {
@@ -46,7 +95,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
     if (_scrollController.position.pixels >= 
         _scrollController.position.maxScrollExtent - 500) {
       // Load more if not already loading
-      if (!_isLoadingMore) {
+      if (!_isLoadingMore && _clusterPropertyIds.isNotEmpty) {
         _isLoadingMore = true;
         print('📜 MapsPropertyPage: Infinite scroll triggered - loading more');
         context.read<PropertyListBloc>().add(LoadMorePropertiesEvent());
@@ -54,7 +103,9 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
     }
   }
 
-  void _loadProperties() {
+  void _loadPropertiesFromCluster() {
+    if (_clusterPropertyIds.isEmpty) return;
+    
     final searchText = _searchController.text;
     
     // Only send filter params if they're actually set by user
@@ -63,12 +114,14 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                       (_priceRange.start > 0 || _priceRange.end < 50000000000);
     
     context.read<PropertyListBloc>().add(
-      FetchPropertiesEvent(
+      SearchPropertiesEvent(
         search: searchText.isNotEmpty ? searchText : null,
+        ids: _clusterPropertyIds,
         status: _selectedStatus.isNotEmpty ? _selectedStatus.first : null,
         type: _selectedType.isNotEmpty ? _selectedType.first : null,
         priceMin: hasFilters && _priceRange.start > 0 ? _priceRange.start.toInt() : null,
         priceMax: hasFilters && _priceRange.end < 50000000000 ? _priceRange.end.toInt() : null,
+        viewMode: 'simple',
       ),
     );
   }
@@ -275,7 +328,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                           _selectedLocation = tempSelectedLocation;
                           _selectedType = tempSelectedType;
                           _priceRange = tempPriceRange;
-                          _loadProperties();
+                          _loadPropertiesFromCluster();
                         });
                         Navigator.pop(context);
                       },
@@ -363,7 +416,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
           ),
           child: TextField(
             controller: _searchController,
-            onChanged: (_) => _loadProperties(),
+            onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
               hintText: 'Find property',
               hintStyle: const TextStyle(
@@ -388,6 +441,21 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
       ),
       body: Stack(
         children: [
+          // BlocListener for cluster results
+          BlocListener<PropertyListBloc, PropertyListState>(
+            listener: (context, state) {
+              if (state is LocationClusterLoaded) {
+                setState(() {
+                  _clusterPropertyIds = state.propertyIds;
+                  _isClusterLoading = false;
+                });
+                print('✅ Cluster loaded: ${_clusterPropertyIds.length} properties');
+                _loadPropertiesFromCluster();
+              }
+            },
+            child: const SizedBox.shrink(),
+          ),
+          
           // Leaflet Map with Property Markers
           BlocBuilder<PropertyListBloc, PropertyListState>(
             builder: (context, state) {
@@ -476,11 +544,19 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
               
               return FlutterMap(
                 mapController: _mapController,
-                options: const MapOptions(
+                options: MapOptions(
                   initialCenter: _defaultCenter,
                   initialZoom: 13,
                   minZoom: 5,
                   maxZoom: 18,
+                  onMapReady: () {
+                    print('🗺️ Map ready');
+                  },
+                  onPositionChanged: (MapCamera camera, bool hasGesture) {
+                    if (hasGesture) {
+                      _onMapMove(camera);
+                    }
+                  },
                 ),
                 children: [
                   TileLayer(
