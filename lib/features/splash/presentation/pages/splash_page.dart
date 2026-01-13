@@ -50,7 +50,10 @@ class _SplashPageState extends State<SplashPage>
     try {
       context.go('/login');
     } catch (e) {
-      print('Navigation error to login: $e');
+      // Navigation error - use fallback navigation
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
     }
   }
 
@@ -58,7 +61,10 @@ class _SplashPageState extends State<SplashPage>
     try {
       context.go('/home');
     } catch (e) {
-      print('Navigation error to home: $e');
+      // Navigation error - use fallback navigation
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
     }
   }
 

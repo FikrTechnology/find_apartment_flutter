@@ -28,15 +28,13 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          _logger.d('Request: ${options.method} ${options.path}');
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          _logger.d('Response: ${response.statusCode} ${response.requestOptions.path}');
           return handler.next(response);
         },
         onError: (DioException e, handler) {
-          _logger.e('Error: ${e.type} - ${e.message}');
+          _logger.e('API Error: ${e.type} - ${e.message}');
           return handler.next(e);
         },
       ),
@@ -91,24 +89,9 @@ class ApiClient {
       };
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
-        _logger.d('Using Bearer token for add property');
       }
       
       final requestData = request.toJson();
-      
-      // Log request details
-      _logger.i('=== ADD PROPERTY REQUEST ===');
-      _logger.i('Type: ${requestData['type']}');
-      _logger.i('Status: ${requestData['status']}');
-      _logger.i('Name: ${requestData['name']}');
-      _logger.i('Description: ${requestData['description']}');
-      _logger.i('Address: ${requestData['address']}');
-      _logger.i('Price: ${requestData['price']} (type: ${requestData['price'].runtimeType})');
-      _logger.i('Building Area: ${requestData['building_area']} (type: ${requestData['building_area'].runtimeType})');
-      _logger.i('Land Area: ${requestData['land_area']} (type: ${requestData['land_area'].runtimeType})');
-      _logger.i('Image first 100 chars: ${(requestData['image'] as String).substring(0, 100)}');
-      _logger.i('Image length: ${(requestData['image'] as String).length} chars');
-      _logger.i('========================');
       
       final response = await _dio.post(
         '/properties',
@@ -117,15 +100,9 @@ class ApiClient {
       );
       
       _logger.i('Property added successfully: ${request.propertyName}');
-      _logger.i('Response: ${response.data}');
       return AddPropertyResponse.fromJson(response.data);
     } on DioException catch (e) {
-      _logger.e('=== ADD PROPERTY ERROR ===');
-      _logger.e('DioException Type: ${e.type}');
-      _logger.e('Status Code: ${e.response?.statusCode}');
-      _logger.e('Response Data: ${e.response?.data}');
-      _logger.e('Error Message: ${e.message}');
-      _logger.e('========================');
+      _logger.e('Add property error: ${_handleDioException(e)}');
       throw _handleDioException(e);
     } catch (e) {
       _logger.e('Unexpected error during add property: $e');
@@ -139,21 +116,14 @@ class ApiClient {
   }) async {
     try {
       _logger.i('Fetching properties with filters');
-      print('🔐 API: getProperties called');
-      print('🔐 API: Token provided: ${token != null ? 'YES (${token.length} chars)' : 'NO'}');
       
       // Set authorization header if token provided
       final headers = <String, dynamic>{};
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
-        print('🔐 API: Authorization header SET: Bearer ${token.substring(0, 20)}...');
         _logger.d('Using Bearer token for authentication');
-      } else {
-        print('⚠️  API: WARNING - No token provided for getProperties!');
       }
 
-      print('🔐 API: Final headers: $headers');
-      
       final response = await _dio.get(
         '/properties',
         queryParameters: request.toQueryParams(),
@@ -164,8 +134,6 @@ class ApiClient {
       return PropertyListResponse.fromJson(response.data);
     } on DioException catch (e) {
       _logger.e('Get properties error: ${_handleDioException(e)}');
-      print('❌ API Error: ${e.type} - ${e.message}');
-      print('❌ API Response: ${e.response?.data}');
       throw _handleDioException(e);
     } catch (e) {
       _logger.e('Unexpected error during get properties: $e');

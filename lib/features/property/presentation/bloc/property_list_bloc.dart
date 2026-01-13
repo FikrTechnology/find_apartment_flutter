@@ -36,19 +36,13 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
 
     try {
       _logger.i('Fetching properties: search=${event.search}, type=${event.type}');
-      print('📍 PropertyListBloc: _onFetchProperties called');
 
       // Get token from session
       final token = await _sessionService.getToken();
-      print('📍 PropertyListBloc: Token retrieved - ${token != null ? 'YES (${token.length} chars)' : 'NO'}');
       
       if (token == null || token.isEmpty) {
-        print('⚠️  PropertyListBloc: WARNING - Token is null or empty!');
-      } else {
-        print('📍 PropertyListBloc: Token first 30 chars: ${token.substring(0, 30)}...');
+        _logger.e('Token is null or empty!');
       }
-
-      _logger.d('Using token for API request: ${token != null}');
 
       final request = PropertyListRequest(
         search: event.search,
@@ -67,8 +61,6 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
         _pagination = response.pagination;
         _currentPage = 1;
 
-        print('📍 PropertyListBloc: Response SUCCESS - ${response.data.length} items found');
-
         _logger.i(
           'Properties fetched: ${response.data.length} items, '
           'page ${_pagination?.currentPage}/${_pagination?.lastPage}',
@@ -80,10 +72,7 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
           hasMore: _pagination?.hasMore ?? false,
           currentPage: _currentPage,
         ));
-        
-        print('📍 PropertyListBloc: EMITTED PropertyListLoaded with ${_allProperties.length} items');
       } else {
-        print('📍 PropertyListBloc: Response NOT SUCCESS - message=${response.message}');
         _logger.w('Failed to fetch properties: ${response.message}');
         emit(PropertyListError(message: response.message));
       }
@@ -197,7 +186,6 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
       _logger.i('Searching properties with bulk IDs and filters');
 
       final token = await _sessionService.getToken();
-      _logger.d('Using token for search: ${token != null}');
 
       final request = PropertySearchRequest(
         search: event.search,
@@ -246,7 +234,6 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
       _logger.i('Fetching location cluster for ${event.bounds.length} bounds');
 
       final token = await _sessionService.getToken();
-      _logger.d('Using token for cluster: ${token != null}');
 
       final request = LocationClusterRequest(
         bounds: event.bounds,

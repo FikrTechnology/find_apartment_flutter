@@ -33,8 +33,6 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
     // Setup infinite scroll listener
     _scrollController.addListener(_onScroll);
     
-    print('🔍 AllSearchResultPage: initState - query="${widget.query}", text="${_searchController.text}"');
-    
     // Clear filters first
     _selectedStatus.clear();
     _selectedLocation.clear();
@@ -43,7 +41,6 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
     
     // Schedule load on next frame - ensures context is ready
     Future.microtask(() {
-      print('🔍 AllSearchResultPage: Calling _loadProperties via microtask');
       _loadProperties();
     });
   }
@@ -55,7 +52,6 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
       // Load more if not already loading
       if (!_isLoadingMore) {
         _isLoadingMore = true;
-        print('📜 AllSearchResultPage: Infinite scroll triggered - loading more');
         context.read<PropertyListBloc>().add(LoadMorePropertiesEvent());
       }
     }
@@ -64,8 +60,6 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Refresh when page becomes visible
-    print('🔍 AllSearchResultPage: didChangeDependencies called');
   }
 
   void _loadProperties() {
@@ -75,8 +69,6 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
     final hasFilters = _selectedStatus.isNotEmpty || 
                       _selectedType.isNotEmpty ||
                       (_priceRange.start > 0 || _priceRange.end < 50000000000);
-    
-    print('🔍 AllSearchResultPage: _loadProperties - search="$searchText", hasFilters=$hasFilters');
     
     context.read<PropertyListBloc>().add(
       FetchPropertiesEvent(
@@ -481,17 +473,13 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
             Expanded(
               child: BlocBuilder<PropertyListBloc, PropertyListState>(
                 builder: (context, state) {
-                  print('🔍 AllSearchResultPage BlocBuilder: state type = ${state.runtimeType}, state=$state');
-                  
                   if (state is PropertyListLoading) {
-                    print('🔍 AllSearchResultPage: Loading state detected');
                     return const Center(
                       child: CircularProgressIndicator(),
                     );
                   }
 
                   if (state is PropertyListError) {
-                    print('🔍 AllSearchResultPage: Error state - ${state.message}');
                     return Center(
                       child: Text(
                         'Error: ${state.message}',
@@ -506,7 +494,6 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
 
                   if (state is PropertyListLoaded) {
                     final properties = state.properties;
-                    print('🔍 AllSearchResultPage: Loaded state - ${properties.length} properties');
                     if (properties.isEmpty) {
                       return Center(
                         child: Text(
@@ -563,7 +550,6 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                   }
 
                   // Handle initial or unknown state
-                  print('🔍 AllSearchResultPage: Unknown/Initial state - showing empty');
                   return const SizedBox.shrink();
                 },
               ),

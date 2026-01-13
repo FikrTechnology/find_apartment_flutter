@@ -27,19 +27,10 @@ class PropertyBloc extends Bloc<PropertyEvent, PropertyState> {
     emit(const PropertyLoading());
 
     try {
-      _logger.i('=== PROPERTY BLOC: ADD PROPERTY ===');
-      _logger.i('Property Name: ${event.propertyName}');
-      _logger.i('Type: ${event.type}, Status: ${event.status}');
-      _logger.i('Price: ${event.price}');
-      _logger.i('Building Area: ${event.buildingArea}, Land Area: ${event.landArea}');
-      _logger.i('Description length: ${event.description.length}');
-      _logger.i('Address: ${event.fullAddress}');
-      _logger.i('Image Base64 length: ${event.imageBase64.length}');
-      _logger.i('=====================================');
+      _logger.i('Adding property: ${event.propertyName}');
 
       // Get token from session
       final token = await _sessionService.getToken();
-      _logger.d('Token retrieved: ${token != null ? 'YES (${token.length} chars)' : 'NO'}');
 
       if (token == null || token.isEmpty) {
         _logger.e('No token available!');
@@ -63,13 +54,13 @@ class PropertyBloc extends Bloc<PropertyEvent, PropertyState> {
       final response = await _apiClient.addProperty(request, token: token);
 
       if (response.success && response.data != null) {
-        _logger.i('✅ Property added successfully: ${response.data!.id}');
+        _logger.i('Property added successfully: ${response.data!.id}');
         emit(PropertySuccess(
           message: response.message,
           propertyId: response.data!.id,
         ));
       } else {
-        _logger.w('❌ Failed to add property: ${response.message}');
+        _logger.w('Failed to add property: ${response.message}');
         emit(PropertyError(message: response.message));
       }
     } catch (e) {

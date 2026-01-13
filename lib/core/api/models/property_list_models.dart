@@ -72,13 +72,10 @@ class PropertyListResponse {
     List<Property> properties = [];
     
     final dataWrapper = json['data'];
-    print('🔍 PropertyListResponse: dataWrapper type = ${dataWrapper.runtimeType}');
-    print('🔍 PropertyListResponse: dataWrapper = $dataWrapper');
     
     if (dataWrapper is Map) {
       // API returns data.data structure
       final actualData = dataWrapper['data'];
-      print('🔍 PropertyListResponse: Found nested data.data - ${(actualData as List?)?.length ?? 0} items');
       
       if (actualData is List) {
         properties = actualData
@@ -87,13 +84,10 @@ class PropertyListResponse {
       }
     } else if (dataWrapper is List) {
       // Standard array response
-      print('🔍 PropertyListResponse: Found direct data array - ${dataWrapper.length} items');
       properties = dataWrapper
           .map((item) => Property.fromJson(item as Map<String, dynamic>))
           .toList();
     }
-    
-    print('🔍 PropertyListResponse: Final properties count = ${properties.length}');
     
     return PropertyListResponse(
       success: (json['meta']?['code'] ?? 0) == 200,
@@ -147,8 +141,6 @@ class Property {
       parsedPrice = (json['price'] as num).toInt();
     }
     
-    print('🔍 Property.fromJson: price raw=${json['price']}, parsed=$parsedPrice');
-    
     return Property(
       id: json['id'] ?? 0,
       type: json['type'] ?? '',
@@ -201,8 +193,6 @@ class PaginationMeta {
   factory PaginationMeta.fromJson(Map<String, dynamic> json) {
     // API response has has_more_pages instead of calculating
     final hasMore = json['has_more_pages'] ?? false;
-    
-    print('🔍 PaginationMeta: per_page=${json['per_page']}, has_more_pages=$hasMore');
     
     return PaginationMeta(
       currentPage: json['current_page'] ?? 1,

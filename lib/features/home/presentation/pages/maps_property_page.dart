@@ -85,7 +85,6 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
         neLongitude: visibleBounds.east,
       );
     } catch (e) {
-      print('Error getting visible bounds: $e');
       return null;
     }
   }
@@ -97,7 +96,6 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
       // Load more if not already loading
       if (!_isLoadingMore && _clusterPropertyIds.isNotEmpty) {
         _isLoadingMore = true;
-        print('📜 MapsPropertyPage: Infinite scroll triggered - loading more');
         context.read<PropertyListBloc>().add(LoadMorePropertiesEvent());
       }
     }
@@ -391,7 +389,6 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                     context.go('/home');
                   }
                 } catch (e) {
-                  print('❌ Maps page back button error: $e');
                   context.go('/home');
                 }
               },
@@ -449,7 +446,6 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                   _clusterPropertyIds = state.propertyIds;
                   _isClusterLoading = false;
                 });
-                print('✅ Cluster loaded: ${_clusterPropertyIds.length} properties');
                 _loadPropertiesFromCluster();
               }
             },
@@ -549,9 +545,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                   initialZoom: 13,
                   minZoom: 5,
                   maxZoom: 18,
-                  onMapReady: () {
-                    print('🗺️ Map ready');
-                  },
+                  onMapReady: () {},
                   onPositionChanged: (MapCamera camera, bool hasGesture) {
                     if (hasGesture) {
                       _onMapMove(camera);
@@ -583,7 +577,6 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                       sheetScrollController.position.maxScrollExtent - 500) {
                     if (!_isLoadingMore) {
                       _isLoadingMore = true;
-                      print('📜 MapsPropertyPage: Sheet infinite scroll triggered');
                       context.read<PropertyListBloc>().add(LoadMorePropertiesEvent());
                     }
                   }

@@ -145,7 +145,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
       // Validate image file exists before conversion
       final imageExists = await _selectedImage!.exists().catchError(
         (e) {
-          print('Error checking image file: $e');
           return false;
         },
       );
@@ -163,7 +162,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
       final imageBase64 = await ImagePickerUtil.convertImageToBase64(_selectedImage!).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
-          print('Timeout converting image to base64');
           return null;
         },
       );
@@ -177,9 +175,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         setState(() => _isSubmitting = false);
         return;
       }
-
-      print('📷 Image Base64 first 100 chars: ${imageBase64.substring(0, 100)}');
-      print('📷 Image Base64 length: ${imageBase64.length}');
 
       if (mounted) {
         context.read<PropertyBloc>().add(
@@ -198,7 +193,6 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         );
       }
     } catch (e) {
-      print('Error in _submitForm: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error mengupload foto: $e')),
