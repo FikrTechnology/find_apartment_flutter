@@ -1,6 +1,19 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 
+/// Remember Me Service - Manages user credentials persistence
+/// 
+/// Remember Me Configuration:
+/// - Duration: INFINITE (persists across app sessions)
+/// - Storage: Encrypted secure storage (flutter_secure_storage)
+/// - Scope: Email and password only
+/// - Lifecycle: Survives logout, cleared only on manual disable
+/// 
+/// User Flow:
+/// 1. Enable checkbox → saveCredentials()
+/// 2. Logout → Credentials PRESERVED
+/// 3. Next login → Credentials auto-filled
+/// 4. Disable checkbox → clearCredentials()
 class RememberMeService {
   static const String _emailKey = 'remembered_email';
   static const String _passwordKey = 'remembered_password';

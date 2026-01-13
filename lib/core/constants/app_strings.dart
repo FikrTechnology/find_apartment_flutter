@@ -8,8 +8,8 @@ class AppStrings {
   static const String getStarted = 'Get Started';
 
   // ==================== Auth - Login ====================
-  static const String loginTitle = 'Welcome Back to Rentara';
-  static const String loginSubtitle = 'Access curated listings and manage your property search seamlessly';
+  static const String loginTitle = 'Welcome Back to Rentara Property';
+  static const String loginSubtitle = 'Access curated listings and manage your property search seamlessly.';
   static const String email = 'Email';
   static const String emailHint = 'Enter your email';
   static const String password = 'Password';
