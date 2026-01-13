@@ -36,9 +36,18 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
 
     try {
       _logger.i('Fetching properties: search=${event.search}, type=${event.type}');
+      print('📍 PropertyListBloc: _onFetchProperties called');
 
       // Get token from session
       final token = await _sessionService.getToken();
+      print('📍 PropertyListBloc: Token retrieved - ${token != null ? 'YES (${token.length} chars)' : 'NO'}');
+      
+      if (token == null || token.isEmpty) {
+        print('⚠️  PropertyListBloc: WARNING - Token is null or empty!');
+      } else {
+        print('📍 PropertyListBloc: Token first 30 chars: ${token.substring(0, 30)}...');
+      }
+
       _logger.d('Using token for API request: ${token != null}');
 
       final request = PropertyListRequest(
@@ -58,6 +67,8 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
         _pagination = response.pagination;
         _currentPage = 1;
 
+        print('📍 PropertyListBloc: Response SUCCESS - ${response.data.length} items found');
+
         _logger.i(
           'Properties fetched: ${response.data.length} items, '
           'page ${_pagination?.currentPage}/${_pagination?.lastPage}',
@@ -69,7 +80,10 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
           hasMore: _pagination?.hasMore ?? false,
           currentPage: _currentPage,
         ));
+        
+        print('📍 PropertyListBloc: EMITTED PropertyListLoaded with ${_allProperties.length} items');
       } else {
+        print('📍 PropertyListBloc: Response NOT SUCCESS - message=${response.message}');
         _logger.w('Failed to fetch properties: ${response.message}');
         emit(PropertyListError(message: response.message));
       }
@@ -93,8 +107,9 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
 
       try {
         final token = await _sessionService.getToken();
+        // Use perPage from current pagination if available, otherwise let API decide
         final request = PropertyListRequest(
-          perPage: currentState.pagination?.perPage ?? 12,
+          perPage: currentState.pagination?.perPage,
         );
 
         final response = await _apiClient.getProperties(request, token: token);
@@ -137,8 +152,9 @@ class PropertyListBloc extends Bloc<PropertyListEvent, PropertyListState> {
         final nextPage = (_pagination?.currentPage ?? 1) + 1;
         final token = await _sessionService.getToken();
 
+        // Use perPage from pagination, let API use its default if not available
         final request = PropertyListRequest(
-          perPage: _pagination?.perPage ?? 12,
+          perPage: _pagination?.perPage,
         );
 
         final response = await _apiClient.getProperties(request, token: token);

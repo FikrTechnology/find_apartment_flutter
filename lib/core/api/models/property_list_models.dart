@@ -15,7 +15,7 @@ class PropertyListRequest {
     this.status,
     this.priceMin,
     this.priceMax,
-    this.perPage = 12,
+    this.perPage, // Don't set default - let API decide
     this.ids,
   });
 
@@ -68,13 +68,37 @@ class PropertyListResponse {
   });
 
   factory PropertyListResponse.fromJson(Map<String, dynamic> json) {
+    // Handle nested data structure: data.data
+    List<Property> properties = [];
+    
+    final dataWrapper = json['data'];
+    print('🔍 PropertyListResponse: dataWrapper type = ${dataWrapper.runtimeType}');
+    print('🔍 PropertyListResponse: dataWrapper = $dataWrapper');
+    
+    if (dataWrapper is Map) {
+      // API returns data.data structure
+      final actualData = dataWrapper['data'];
+      print('🔍 PropertyListResponse: Found nested data.data - ${(actualData as List?)?.length ?? 0} items');
+      
+      if (actualData is List) {
+        properties = actualData
+            .map((item) => Property.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+    } else if (dataWrapper is List) {
+      // Standard array response
+      print('🔍 PropertyListResponse: Found direct data array - ${dataWrapper.length} items');
+      properties = dataWrapper
+          .map((item) => Property.fromJson(item as Map<String, dynamic>))
+          .toList();
+    }
+    
+    print('🔍 PropertyListResponse: Final properties count = ${properties.length}');
+    
     return PropertyListResponse(
-      success: json['success'] ?? false,
-      message: json['meta']?['message'] ?? json['message'] ?? 'Unknown error',
-      data: (json['data'] as List?)
-              ?.map((item) => Property.fromJson(item as Map<String, dynamic>))
-              .toList() ??
-          [],
+      success: (json['meta']?['code'] ?? 0) == 200,
+      message: json['meta']?['message'] ?? 'Unknown error',
+      data: properties,
       pagination: json['pagination'] != null
           ? PaginationMeta.fromJson(json['pagination'])
           : null,
@@ -112,6 +136,19 @@ class Property {
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
+    // Parse price - can be string like "2990372362.00" or int
+    int parsedPrice = 0;
+    if (json['price'] is String) {
+      final priceStr = json['price'].toString();
+      // Remove decimal part if exists
+      final priceDouble = double.tryParse(priceStr) ?? 0.0;
+      parsedPrice = priceDouble.toInt();
+    } else if (json['price'] is num) {
+      parsedPrice = (json['price'] as num).toInt();
+    }
+    
+    print('🔍 Property.fromJson: price raw=${json['price']}, parsed=$parsedPrice');
+    
     return Property(
       id: json['id'] ?? 0,
       type: json['type'] ?? '',
@@ -119,13 +156,11 @@ class Property {
       name: json['name'] ?? json['title'] ?? '',
       description: json['description'] ?? '',
       address: json['address'] ?? '',
-      price: json['price'] is String
-          ? int.tryParse(json['price'].toString()) ?? 0
-          : json['price'] ?? 0,
+      price: parsedPrice,
       imageUrl: json['image_url'] ?? json['image'],
       buildingArea: json['building_area'] ?? json['lb'],
       landArea: json['land_area'] ?? json['lt'],
-      postedAt: json['posted_at'] ?? json['postTime'],
+      postedAt: json['posted_at'] ?? json['postTime'] ?? json['created_at'],
       isBookmarked: json['is_bookmarked'] ?? false,
     );
   }
@@ -164,12 +199,17 @@ class PaginationMeta {
   });
 
   factory PaginationMeta.fromJson(Map<String, dynamic> json) {
+    // API response has has_more_pages instead of calculating
+    final hasMore = json['has_more_pages'] ?? false;
+    
+    print('🔍 PaginationMeta: per_page=${json['per_page']}, has_more_pages=$hasMore');
+    
     return PaginationMeta(
       currentPage: json['current_page'] ?? 1,
       perPage: json['per_page'] ?? 12,
       total: json['total'] ?? 0,
       lastPage: json['last_page'] ?? 1,
-      hasMore: (json['current_page'] ?? 1) < (json['last_page'] ?? 1),
+      hasMore: hasMore,
     );
   }
 }

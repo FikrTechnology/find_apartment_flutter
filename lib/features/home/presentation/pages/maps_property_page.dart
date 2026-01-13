@@ -16,12 +16,14 @@ class MapsPropertyPage extends StatefulWidget {
 class _MapsPropertyPageState extends State<MapsPropertyPage> {
   late TextEditingController _searchController;
   late MapController _mapController;
+  late ScrollController _scrollController;
 
   // Filter state
   RangeValues _priceRange = const RangeValues(0, 100000000);
   Set<String> _selectedStatus = {};
   Set<String> _selectedLocation = {};
   Set<String> _selectedType = {};
+  bool _isLoadingMore = false;
   
   // Default center (Jakarta)
   static const LatLng _defaultCenter = LatLng(-6.2088, 106.8456);
@@ -31,17 +33,42 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
     super.initState();
     _searchController = TextEditingController();
     _mapController = MapController();
+    _scrollController = ScrollController();
+    
+    // Setup infinite scroll listener
+    _scrollController.addListener(_onScroll);
+    
     _loadProperties();
   }
 
+  void _onScroll() {
+    // Detect when user scrolls to bottom
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 500) {
+      // Load more if not already loading
+      if (!_isLoadingMore) {
+        _isLoadingMore = true;
+        print('📜 MapsPropertyPage: Infinite scroll triggered - loading more');
+        context.read<PropertyListBloc>().add(LoadMorePropertiesEvent());
+      }
+    }
+  }
+
   void _loadProperties() {
+    final searchText = _searchController.text;
+    
+    // Only send filter params if they're actually set by user
+    final hasFilters = _selectedStatus.isNotEmpty || 
+                      _selectedType.isNotEmpty ||
+                      (_priceRange.start > 0 || _priceRange.end < 100000000);
+    
     context.read<PropertyListBloc>().add(
       FetchPropertiesEvent(
-        search: _searchController.text,
+        search: searchText.isNotEmpty ? searchText : null,
         status: _selectedStatus.isNotEmpty ? _selectedStatus.first : null,
         type: _selectedType.isNotEmpty ? _selectedType.first : null,
-        priceMin: _priceRange.start.toInt(),
-        priceMax: _priceRange.end.toInt(),
+        priceMin: hasFilters && _priceRange.start > 0 ? _priceRange.start.toInt() : null,
+        priceMax: hasFilters && _priceRange.end < 100000000 ? _priceRange.end.toInt() : null,
       ),
     );
   }
@@ -50,6 +77,7 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
   void dispose() {
     _searchController.dispose();
     _mapController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -302,7 +330,18 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                 color: Color(0xFF1F2937),
                 size: 24,
               ),
-              onPressed: () => context.pop(),
+              onPressed: () {
+                try {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/home');
+                  }
+                } catch (e) {
+                  print('❌ Maps page back button error: $e');
+                  context.go('/home');
+                }
+              },
             ),
           ),
         ),
@@ -460,7 +499,21 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
             initialChildSize: 0.4,
             minChildSize: 0.2,
             maxChildSize: 0.8,
-            builder: (context, scrollController) {
+            builder: (context, sheetScrollController) {
+              // Setup listener for infinite scroll on sheet scroll
+              if (!sheetScrollController.hasListeners) {
+                sheetScrollController.addListener(() {
+                  if (sheetScrollController.position.pixels >= 
+                      sheetScrollController.position.maxScrollExtent - 500) {
+                    if (!_isLoadingMore) {
+                      _isLoadingMore = true;
+                      print('📜 MapsPropertyPage: Sheet infinite scroll triggered');
+                      context.read<PropertyListBloc>().add(LoadMorePropertiesEvent());
+                    }
+                  }
+                });
+              }
+              
               return Container(
                 decoration: const BoxDecoration(
                   color: Colors.white,
@@ -577,13 +630,42 @@ class _MapsPropertyPageState extends State<MapsPropertyPage> {
                             }
 
                             return ListView.builder(
-                              controller: scrollController,
+                              controller: sheetScrollController,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
                                 vertical: 8,
                               ),
-                              itemCount: properties.length,
+                              itemCount: properties.length + (state.hasMore ? 1 : 0),
                               itemBuilder: (context, index) {
+                                // Show loading indicator at the end
+                                if (index == properties.length) {
+                                  // Reset loading flag when new data arrives
+                                  _isLoadingMore = false;
+                                  
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    child: Center(
+                                      child: Column(
+                                        children: const [
+                                          CircularProgressIndicator(
+                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                              Color(0xFF6366F1),
+                                            ),
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            'Loading more...',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Color(0xFF9CA3AF),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }
+
                                 final property = properties[index];
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 16),

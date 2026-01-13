@@ -3,12 +3,14 @@ import 'package:equatable/equatable.dart';
 import 'package:logger/logger.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/models/property_models.dart';
+import '../../../../core/services/session_service.dart';
 
 part 'property_event.dart';
 part 'property_state.dart';
 
 class PropertyBloc extends Bloc<PropertyEvent, PropertyState> {
   final ApiClient _apiClient;
+  final SessionService _sessionService = SessionService();
   final Logger _logger = Logger();
 
   PropertyBloc({required ApiClient apiClient})
@@ -27,6 +29,10 @@ class PropertyBloc extends Bloc<PropertyEvent, PropertyState> {
     try {
       _logger.i('Adding property: ${event.propertyName}');
 
+      // Get token from session
+      final token = await _sessionService.getToken();
+      _logger.d('Using token for property add: ${token != null}');
+
       final request = AddPropertyRequest(
         propertyName: event.propertyName,
         price: event.price,
@@ -36,7 +42,7 @@ class PropertyBloc extends Bloc<PropertyEvent, PropertyState> {
         imageName: event.imageName,
       );
 
-      final response = await _apiClient.addProperty(request);
+      final response = await _apiClient.addProperty(request, token: token);
 
       if (response.success && response.data != null) {
         _logger.i('Property added successfully: ${response.data!.id}');

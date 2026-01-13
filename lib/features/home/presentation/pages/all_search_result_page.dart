@@ -17,26 +17,74 @@ class AllSearchResultPage extends StatefulWidget {
 
 class _AllSearchResultPageState extends State<AllSearchResultPage> {
   late TextEditingController _searchController;
+  late ScrollController _scrollController;
   RangeValues _priceRange = const RangeValues(0, 100000000);
   Set<String> _selectedStatus = {};
   Set<String> _selectedLocation = {};
   Set<String> _selectedType = {};
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.query);
-    _loadProperties();
+    _scrollController = ScrollController();
+    
+    // Setup infinite scroll listener
+    _scrollController.addListener(_onScroll);
+    
+    print('🔍 AllSearchResultPage: initState - query="${widget.query}", text="${_searchController.text}"');
+    
+    // Clear filters first
+    _selectedStatus.clear();
+    _selectedLocation.clear();
+    _selectedType.clear();
+    _priceRange = const RangeValues(0, 100000000);
+    
+    // Schedule load on next frame - ensures context is ready
+    Future.microtask(() {
+      print('🔍 AllSearchResultPage: Calling _loadProperties via microtask');
+      _loadProperties();
+    });
+  }
+
+  void _onScroll() {
+    // Detect when user scrolls to bottom
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 500) {
+      // Load more if not already loading
+      if (!_isLoadingMore) {
+        _isLoadingMore = true;
+        print('📜 AllSearchResultPage: Infinite scroll triggered - loading more');
+        context.read<PropertyListBloc>().add(LoadMorePropertiesEvent());
+      }
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh when page becomes visible
+    print('🔍 AllSearchResultPage: didChangeDependencies called');
   }
 
   void _loadProperties() {
+    final searchText = _searchController.text;
+    
+    // Only send filter params if they're actually set by user
+    final hasFilters = _selectedStatus.isNotEmpty || 
+                      _selectedType.isNotEmpty ||
+                      (_priceRange.start > 0 || _priceRange.end < 100000000);
+    
+    print('🔍 AllSearchResultPage: _loadProperties - search="$searchText", hasFilters=$hasFilters');
+    
     context.read<PropertyListBloc>().add(
       FetchPropertiesEvent(
-        search: _searchController.text,
+        search: searchText.isNotEmpty ? searchText : null,
         status: _selectedStatus.isNotEmpty ? _selectedStatus.first : null,
         type: _selectedType.isNotEmpty ? _selectedType.first : null,
-        priceMin: _priceRange.start.toInt(),
-        priceMax: _priceRange.end.toInt(),
+        priceMin: hasFilters && _priceRange.start > 0 ? _priceRange.start.toInt() : null,
+        priceMax: hasFilters && _priceRange.end < 100000000 ? _priceRange.end.toInt() : null,
       ),
     );
   }
@@ -44,6 +92,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -432,13 +481,17 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
             Expanded(
               child: BlocBuilder<PropertyListBloc, PropertyListState>(
                 builder: (context, state) {
+                  print('🔍 AllSearchResultPage BlocBuilder: state type = ${state.runtimeType}, state=$state');
+                  
                   if (state is PropertyListLoading) {
+                    print('🔍 AllSearchResultPage: Loading state detected');
                     return const Center(
                       child: CircularProgressIndicator(),
                     );
                   }
 
                   if (state is PropertyListError) {
+                    print('🔍 AllSearchResultPage: Error state - ${state.message}');
                     return Center(
                       child: Text(
                         'Error: ${state.message}',
@@ -453,6 +506,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
 
                   if (state is PropertyListLoaded) {
                     final properties = state.properties;
+                    print('🔍 AllSearchResultPage: Loaded state - ${properties.length} properties');
                     if (properties.isEmpty) {
                       return Center(
                         child: Text(
@@ -466,9 +520,39 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                       );
                     }
 
+                    // Reset loading flag when new data arrives
+                    _isLoadingMore = false;
+
                     return ListView.builder(
-                      itemCount: properties.length,
+                      controller: _scrollController,
+                      itemCount: properties.length + (state.hasMore ? 1 : 0),
                       itemBuilder: (context, index) {
+                        // Show loading indicator at the end
+                        if (index == properties.length) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child: Column(
+                                children: const [
+                                  CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF6366F1),
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Loading more...',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF9CA3AF),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+
                         final property = properties[index];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
@@ -478,6 +562,8 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                     );
                   }
 
+                  // Handle initial or unknown state
+                  print('🔍 AllSearchResultPage: Unknown/Initial state - showing empty');
                   return const SizedBox.shrink();
                 },
               ),

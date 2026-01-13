@@ -79,12 +79,23 @@ class ApiClient {
     }
   }
 
-  Future<AddPropertyResponse> addProperty(AddPropertyRequest request) async {
+  Future<AddPropertyResponse> addProperty(
+    AddPropertyRequest request, {
+    String? token,
+  }) async {
     try {
       _logger.i('Adding property: ${request.propertyName}');
+      
+      final headers = <String, dynamic>{};
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+        _logger.d('Using Bearer token for add property');
+      }
+      
       final response = await _dio.post(
         '/properties/add',
         data: request.toJson(),
+        options: Options(headers: headers),
       );
       _logger.i('Property added successfully: ${request.propertyName}');
       return AddPropertyResponse.fromJson(response.data);
@@ -103,14 +114,21 @@ class ApiClient {
   }) async {
     try {
       _logger.i('Fetching properties with filters');
+      print('🔐 API: getProperties called');
+      print('🔐 API: Token provided: ${token != null ? 'YES (${token.length} chars)' : 'NO'}');
       
       // Set authorization header if token provided
       final headers = <String, dynamic>{};
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
+        print('🔐 API: Authorization header SET: Bearer ${token.substring(0, 20)}...');
         _logger.d('Using Bearer token for authentication');
+      } else {
+        print('⚠️  API: WARNING - No token provided for getProperties!');
       }
 
+      print('🔐 API: Final headers: $headers');
+      
       final response = await _dio.get(
         '/properties',
         queryParameters: request.toQueryParams(),
@@ -121,6 +139,8 @@ class ApiClient {
       return PropertyListResponse.fromJson(response.data);
     } on DioException catch (e) {
       _logger.e('Get properties error: ${_handleDioException(e)}');
+      print('❌ API Error: ${e.type} - ${e.message}');
+      print('❌ API Response: ${e.response?.data}');
       throw _handleDioException(e);
     } catch (e) {
       _logger.e('Unexpected error during get properties: $e');
