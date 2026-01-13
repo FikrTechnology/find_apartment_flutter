@@ -7,6 +7,7 @@ import 'features/splash/presentation/bloc/splash_bloc.dart';
 import 'features/auth/presentation/bloc/login_bloc.dart';
 import 'features/auth/presentation/bloc/register_bloc.dart';
 import 'features/property/presentation/bloc/property_bloc.dart';
+import 'features/property/presentation/bloc/property_list_bloc.dart';
 
 void main() {
   runApp(const MainApp());
@@ -32,6 +33,9 @@ class MainApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => PropertyBloc(apiClient: apiClient),
+        ),
+        BlocProvider(
+          create: (context) => PropertyListBloc(apiClient: apiClient),
         ),
       ],
       child: MaterialApp.router(

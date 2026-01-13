@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../widgets/location_dropdown.dart';
+import '../../../property/presentation/bloc/property_list_bloc.dart';
+import '../../../../core/api/models/property_list_models.dart';
 
 class AllSearchResultPage extends StatefulWidget {
   final String query;
@@ -14,150 +17,34 @@ class AllSearchResultPage extends StatefulWidget {
 
 class _AllSearchResultPageState extends State<AllSearchResultPage> {
   late TextEditingController _searchController;
-  List<Map<String, dynamic>> _filteredResults = [];
   RangeValues _priceRange = const RangeValues(0, 100000000);
   Set<String> _selectedStatus = {};
   Set<String> _selectedLocation = {};
   Set<String> _selectedType = {};
 
-  // Sample data
-  final List<Map<String, dynamic>> _allResults = [
-    {
-      'title': 'Modern Apartment Downtown',
-      'location': 'Jakarta',
-      'address': 'Jl. Sudirman No. 123, Jakarta Selatan',
-      'type': 'Apartment',
-      'status': 'Second',
-      'price': 'IDR 2.450.000',
-      'landArea': 'LT 45 m2',
-      'buildingArea': 'LB 40 m2',
-      'postTime': '2 weeks ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Cozy Apartment with Balcony',
-      'location': 'Jakarta',
-      'address': 'Jl. Gatot Subroto No. 456, Jakarta Pusat',
-      'type': 'Apartment',
-      'status': 'New',
-      'price': 'IDR 2.100.000',
-      'landArea': 'LT 36 m2',
-      'buildingArea': 'LB 32 m2',
-      'postTime': '1 week ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Spacious Family Apartment',
-      'location': 'Bekasi',
-      'address': 'Jl. Merdeka No. 789, Bekasi Utara',
-      'type': 'Apartment',
-      'status': 'Second',
-      'price': 'IDR 1.850.000',
-      'landArea': 'LT 50 m2',
-      'buildingArea': 'LB 45 m2',
-      'postTime': '1 month ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Apartment Near Business District',
-      'location': 'Jakarta',
-      'address': 'Jl. Imam Bonjol No. 321, Jakarta Pusat',
-      'type': 'Apartment',
-      'status': 'New',
-      'price': 'IDR 3.200.000',
-      'landArea': 'LT 55 m2',
-      'buildingArea': 'LB 50 m2',
-      'postTime': '3 days ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Modern Studio Apartment',
-      'location': 'Bandung',
-      'address': 'Jl. Braga No. 654, Bandung',
-      'type': 'Apartment',
-      'status': 'Second',
-      'price': 'IDR 1.650.000',
-      'landArea': 'LT 30 m2',
-      'buildingArea': 'LB 28 m2',
-      'postTime': '5 days ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Elegant 3BR Apartment with Garden',
-      'location': 'Bandung',
-      'address': 'Jl. Cisangkuy No. 987, Bandung',
-      'type': 'Apartment',
-      'status': 'New',
-      'price': 'IDR 2.750.000',
-      'landArea': 'LT 60 m2',
-      'buildingArea': 'LB 55 m2',
-      'postTime': '1 week ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Apartment with Modern Facilities',
-      'location': 'Jakarta',
-      'address': 'Jl. Senayan No. 147, Jakarta Selatan',
-      'type': 'Apartment',
-      'status': 'Second',
-      'price': 'IDR 2.900.000',
-      'landArea': 'LT 48 m2',
-      'buildingArea': 'LB 42 m2',
-      'postTime': '10 days ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Furnished Apartment Ready to Move',
-      'location': 'Bekasi',
-      'address': 'Jl. Harapan Indah No. 258, Bekasi Barat',
-      'type': 'Apartment',
-      'status': 'New',
-      'price': 'IDR 2.600.000',
-      'landArea': 'LT 42 m2',
-      'buildingArea': 'LB 38 m2',
-      'postTime': '2 days ago',
-      'isBookmarked': false,
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.query);
-    _applyFilters();
+    _loadProperties();
+  }
+
+  void _loadProperties() {
+    context.read<PropertyListBloc>().add(
+      FetchPropertiesEvent(
+        search: _searchController.text,
+        status: _selectedStatus.isNotEmpty ? _selectedStatus.first : null,
+        type: _selectedType.isNotEmpty ? _selectedType.first : null,
+        priceMin: _priceRange.start.toInt(),
+        priceMax: _priceRange.end.toInt(),
+      ),
+    );
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _applyFilters() {
-    setState(() {
-      _filteredResults = _allResults.where((item) {
-        bool matchesSearch = item['title']
-            .toLowerCase()
-            .contains(_searchController.text.toLowerCase());
-        bool matchesStatus = _selectedStatus.isEmpty ||
-            _selectedStatus.contains(item['status']);
-        bool matchesLocation = _selectedLocation.isEmpty ||
-            _selectedLocation.contains(item['location']);
-        bool matchesType =
-            _selectedType.isEmpty || _selectedType.contains(item['type']);
-        
-        // Parse price from "IDR X.XXX.XXX" format to double
-        String priceStr = item['price'].replaceAll(RegExp(r'[^\d]'), '');
-        double itemPrice = double.tryParse(priceStr) ?? 0;
-        bool matchesPrice = itemPrice >= _priceRange.start && itemPrice <= _priceRange.end;
-
-        return matchesSearch &&
-            matchesStatus &&
-            matchesLocation &&
-            matchesType &&
-            matchesPrice;
-      }).toList();
-    });
   }
 
   void _showFilterBottomSheet() {
@@ -408,8 +295,8 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                                   _selectedLocation = tempSelectedLocation;
                                   _selectedType = tempSelectedType;
                                   _priceRange = tempPriceRange;
-                                  _applyFilters();
                                 });
+                                _loadProperties();
                                 Navigator.pop(context);
                               },
                               style: FilledButton.styleFrom(
@@ -474,7 +361,7 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
           ),
           child: TextField(
             controller: _searchController,
-            onChanged: (_) => _applyFilters(),
+            onChanged: (_) => _loadProperties(),
             decoration: InputDecoration(
               hintText: AppStrings.findProperty,
               hintStyle: const TextStyle(
@@ -506,13 +393,21 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'All result: ${_filteredResults.length}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
-                  ),
+                BlocBuilder<PropertyListBloc, PropertyListState>(
+                  builder: (context, state) {
+                    int count = 0;
+                    if (state is PropertyListLoaded) {
+                      count = state.properties.length;
+                    }
+                    return Text(
+                      'All result: $count',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937),
+                      ),
+                    );
+                  },
                 ),
                 GestureDetector(
                   onTap: _showFilterBottomSheet,
@@ -535,27 +430,57 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
 
             // Results list
             Expanded(
-              child: _filteredResults.isEmpty
-                  ? Center(
+              child: BlocBuilder<PropertyListBloc, PropertyListState>(
+                builder: (context, state) {
+                  if (state is PropertyListLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (state is PropertyListError) {
+                    return Center(
                       child: Text(
-                        'No results found',
-                        style: TextStyle(
+                        'Error: ${state.message}',
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: const Color(0xFF6B7280),
+                          color: Color(0xFFDC2626),
                         ),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: _filteredResults.length,
+                    );
+                  }
+
+                  if (state is PropertyListLoaded) {
+                    final properties = state.properties;
+                    if (properties.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No results found',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFF6B7280),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      itemCount: properties.length,
                       itemBuilder: (context, index) {
-                        final item = _filteredResults[index];
+                        final property = properties[index];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildResultCard(item),
+                          child: _buildResultCard(property),
                         );
                       },
-                    ),
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
           ],
         ),
@@ -563,10 +488,26 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
     );
   }
 
-  Widget _buildResultCard(Map<String, dynamic> item) {
+  Widget _buildResultCard(Property property) {
     return GestureDetector(
       onTap: () {
-        context.push('/all-search-result/detail', extra: item);
+        // Convert Property to Map for compatibility with existing detail page
+        final propertyMap = {
+          'id': property.id,
+          'title': property.name,
+          'location': property.address.split(',').first,
+          'address': property.address,
+          'type': property.type,
+          'status': property.status,
+          'price': 'IDR ${property.price.toStringAsFixed(0)}',
+          'landArea': 'LT ${property.landArea ?? 0} m2',
+          'buildingArea': 'LB ${property.buildingArea ?? 0} m2',
+          'postTime': property.postedAt ?? 'Recently',
+          'isBookmarked': false,
+          'description': property.description,
+          'images': property.imageUrl,
+        };
+        context.push('/all-search-result/detail', extra: propertyMap);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -583,71 +524,71 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
           children: [
             // Image - Left side
             Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  const Color(0xFF6366F1).withOpacity(0.6),
-                  const Color(0xFF010F81).withOpacity(0.6),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.apartment,
-                color: Colors.white.withOpacity(0.4),
-                size: 24,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Content - Right side
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title
-                Text(
-                  item['title'],
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1F2937),
-                  ),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF6366F1).withOpacity(0.6),
+                    const Color(0xFF010F81).withOpacity(0.6),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                // Location
-                Text(
-                  item['location'],
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF6B7280),
-                  ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.apartment,
+                  color: Colors.white.withOpacity(0.4),
+                  size: 24,
                 ),
-                const SizedBox(height: 6),
-                // Address
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 14,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Content - Right side
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    property.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Location
+                  Text(
+                    property.address.split(',').first,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                       color: Color(0xFF6B7280),
                     ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        item['address'],
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
+                  ),
+                  const SizedBox(height: 6),
+                  // Address
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: Color(0xFF6B7280),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          property.address,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
                           fontWeight: FontWeight.w400,
                           color: Color(0xFF6B7280),
                         ),
@@ -661,9 +602,9 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                   spacing: 4,
                   runSpacing: 4,
                   children: [
-                    _buildTag(item['type']),
-                    _buildTag(item['status']),
-                    _buildTag(item['price']),
+                    _buildTag(property.type),
+                    _buildTag(property.status),
+                    _buildTag('IDR ${property.price.toStringAsFixed(0)}'),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -672,14 +613,14 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
                   spacing: 4,
                   runSpacing: 4,
                   children: [
-                    _buildTag(item['landArea']),
-                    _buildTag(item['buildingArea']),
+                    _buildTag('LT ${property.landArea} m2'),
+                    _buildTag('LB ${property.buildingArea} m2'),
                   ],
                 ),
                 const SizedBox(height: 6),
                 // Post time
                 Text(
-                  item['postTime'],
+                  property.postedAt ?? 'Recently',
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w400,
@@ -691,18 +632,10 @@ class _AllSearchResultPageState extends State<AllSearchResultPage> {
           ),
           // Bookmark icon
           GestureDetector(
-            onTap: () {
-              setState(() {
-                item['isBookmarked'] = !item['isBookmarked'];
-              });
-            },
+            onTap: () {},
             child: Icon(
-              item['isBookmarked']
-                  ? Icons.bookmark
-                  : Icons.bookmark_outline,
-              color: item['isBookmarked']
-                  ? const Color(0xFF6366F1)
-                  : const Color(0xFF6B7280),
+              Icons.bookmark_outline,
+              color: const Color(0xFF6B7280),
               size: 22,
             ),
           ),

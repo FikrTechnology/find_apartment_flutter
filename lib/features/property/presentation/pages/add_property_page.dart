@@ -120,7 +120,41 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
     try {
       setState(() => _isSubmitting = true);
 
-      final imageBase64 = await ImagePickerUtil.convertImageToBase64(_selectedImage!);
+      // Validate image file exists before conversion
+      final imageExists = await _selectedImage!.exists().catchError(
+        (e) {
+          print('Error checking image file: $e');
+          return false;
+        },
+      );
+
+      if (!imageExists) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File foto tidak dapat diakses')),
+          );
+        }
+        setState(() => _isSubmitting = false);
+        return;
+      }
+
+      final imageBase64 = await ImagePickerUtil.convertImageToBase64(_selectedImage!).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          print('Timeout converting image to base64');
+          return null;
+        },
+      );
+      
+      if (imageBase64 == null || imageBase64.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal mengkonversi foto ke Base64')),
+          );
+        }
+        setState(() => _isSubmitting = false);
+        return;
+      }
 
       if (mounted) {
         context.read<PropertyBloc>().add(
@@ -135,9 +169,10 @@ class _AddPropertyPageState extends State<AddPropertyPage> {
         );
       }
     } catch (e) {
+      print('Error in _submitForm: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error mengubah foto: $e')),
+          SnackBar(content: Text('Error mengupload foto: $e')),
         );
       }
       setState(() => _isSubmitting = false);

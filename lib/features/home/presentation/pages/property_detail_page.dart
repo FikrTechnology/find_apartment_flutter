@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../property/presentation/bloc/property_list_bloc.dart';
+import '../../../../core/api/models/property_list_models.dart';
 
 class PropertyDetailPage extends StatefulWidget {
   final Map<String, dynamic> property;
@@ -16,63 +19,24 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
   int _currentImageIndex = 0;
   bool _isBookmarked = false;
 
-  // Sample data untuk More Property for You
-  final List<Map<String, dynamic>> _moreProperties = [
-    {
-      'title': 'Cozy Apartment with Balcony',
-      'location': 'Jakarta',
-      'address': 'Jl. Gatot Subroto No. 456, Jakarta Pusat',
-      'type': 'Apartment',
-      'status': 'New',
-      'price': 'IDR 2.100.000',
-      'landArea': 'LT 36 m2',
-      'buildingArea': 'LB 32 m2',
-      'postTime': '1 week ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Spacious Family Apartment',
-      'location': 'Bekasi',
-      'address': 'Jl. Merdeka No. 789, Bekasi Utara',
-      'type': 'Apartment',
-      'status': 'Second',
-      'price': 'IDR 1.850.000',
-      'landArea': 'LT 50 m2',
-      'buildingArea': 'LB 45 m2',
-      'postTime': '1 month ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Modern Studio Apartment',
-      'location': 'Bandung',
-      'address': 'Jl. Braga No. 654, Bandung',
-      'type': 'Apartment',
-      'status': 'Second',
-      'price': 'IDR 1.650.000',
-      'landArea': 'LT 30 m2',
-      'buildingArea': 'LB 28 m2',
-      'postTime': '5 days ago',
-      'isBookmarked': false,
-    },
-    {
-      'title': 'Elegant 3BR Apartment with Garden',
-      'location': 'Bandung',
-      'address': 'Jl. Cisangkuy No. 987, Bandung',
-      'type': 'Apartment',
-      'status': 'New',
-      'price': 'IDR 2.750.000',
-      'landArea': 'LT 60 m2',
-      'buildingArea': 'LB 55 m2',
-      'postTime': '1 week ago',
-      'isBookmarked': false,
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
     _property = widget.property;
     _isBookmarked = _property['isBookmarked'] ?? false;
+    // Load more properties with similar type
+    _loadMoreProperties();
+  }
+
+  void _loadMoreProperties() {
+    final propertyType = _property['type'] as String?;
+    if (propertyType != null) {
+      context.read<PropertyListBloc>().add(
+        FetchPropertiesEvent(
+          type: propertyType,
+        ),
+      );
+    }
   }
 
   @override
@@ -549,18 +513,43 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
             // Horizontal scrollable property cards
             SizedBox(
               height: 240,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                itemCount: _moreProperties.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: SizedBox(
-                      width: 280,
-                      child: _buildPropertyCard(_moreProperties[index]),
-                    ),
-                  );
+              child: BlocBuilder<PropertyListBloc, PropertyListState>(
+                builder: (context, state) {
+                  if (state is PropertyListLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state is PropertyListError) {
+                    return Center(
+                      child: Text('Error: ${state.message}'),
+                    );
+                  }
+
+                  if (state is PropertyListLoaded) {
+                    final properties = state.properties;
+                    if (properties.isEmpty) {
+                      return const Center(
+                        child: Text('No more properties available'),
+                      );
+                    }
+
+                    return ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      itemCount: properties.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: SizedBox(
+                            width: 280,
+                            child: _buildPropertyCardFromAPI(properties[index]),
+                          ),
+                        );
+                      },
+                    );
+                  }
+
+                  return const SizedBox.shrink();
                 },
               ),
             ),
@@ -667,10 +656,25 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
     );
   }
 
-  Widget _buildPropertyCard(Map<String, dynamic> item) {
+  Widget _buildPropertyCardFromAPI(Property property) {
+    final propertyMap = {
+      'id': property.id,
+      'title': property.name,
+      'location': property.address.split(',').first,
+      'address': property.address,
+      'type': property.type,
+      'status': property.status,
+      'price': 'IDR ${property.price.toStringAsFixed(0)}',
+      'landArea': 'LT ${property.landArea ?? 0} m2',
+      'buildingArea': 'LB ${property.buildingArea ?? 0} m2',
+      'postTime': property.postedAt ?? 'Recently',
+      'isBookmarked': false,
+      'description': property.description,
+      'images': property.imageUrl,
+    };
     return GestureDetector(
       onTap: () {
-        context.push('/property-detail', extra: item);
+        context.push('/property-detail', extra: propertyMap);
       },
       child: Container(
         width: double.infinity,
@@ -718,7 +722,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                 children: [
                   // Title
                   Text(
-                    item['title'],
+                    property.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -730,7 +734,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                   const SizedBox(height: 4),
                   // Location
                   Text(
-                    item['location'],
+                    property.address.split(',').first,
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -749,7 +753,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          item['address'],
+                          property.address,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -767,9 +771,9 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                     spacing: 4,
                     runSpacing: 4,
                     children: [
-                      _buildTag(item['type'], 0xFF6366F1),
-                      _buildTag(item['status'], 0xFF10B981),
-                      _buildTag(item['price'], 0xFFF59E0B),
+                      _buildTag(property.type, 0xFF6366F1),
+                      _buildTag(property.status, 0xFF10B981),
+                      _buildTag('IDR ${property.price.toStringAsFixed(0)}', 0xFFF59E0B),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -778,14 +782,14 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                     spacing: 4,
                     runSpacing: 4,
                     children: [
-                      _buildTag(item['landArea'], 0xFF8B5CF6),
-                      _buildTag(item['buildingArea'], 0xFF06B6D4),
+                      _buildTag('LT ${property.landArea ?? 0} m2', 0xFF8B5CF6),
+                      _buildTag('LB ${property.buildingArea ?? 0} m2', 0xFF06B6D4),
                     ],
                   ),
                   const SizedBox(height: 6),
                   // Post time
                   Text(
-                    item['postTime'],
+                    property.postedAt ?? 'Recently',
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w400,
@@ -797,18 +801,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
             ),
             // Bookmark icon
             GestureDetector(
-              onTap: () {
-                setState(() {
-                  item['isBookmarked'] = !item['isBookmarked'];
-                });
-              },
-              child: Icon(
-                item['isBookmarked']
-                    ? Icons.bookmark
-                    : Icons.bookmark_outline,
-                color: item['isBookmarked']
-                    ? const Color(0xFF6366F1)
-                    : const Color(0xFF6B7280),
+              onTap: () {},
+              child: const Icon(
+                Icons.bookmark_outline,
+                color: Color(0xFF6B7280),
                 size: 22,
               ),
             ),

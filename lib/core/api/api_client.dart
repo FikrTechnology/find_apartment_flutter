@@ -3,6 +3,8 @@ import 'package:logger/logger.dart';
 import 'models/auth_models.dart';
 import 'models/login_models.dart';
 import 'models/property_models.dart';
+import 'models/property_list_models.dart';
+import 'models/location_cluster_models.dart';
 
 class ApiClient {
   static const String baseUrl = 'https://api-test.linkedinindonesia.com/api';
@@ -91,6 +93,97 @@ class ApiClient {
       throw _handleDioException(e);
     } catch (e) {
       _logger.e('Unexpected error during add property: $e');
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  Future<PropertyListResponse> getProperties(
+    PropertyListRequest request, {
+    String? token,
+  }) async {
+    try {
+      _logger.i('Fetching properties with filters');
+      
+      // Set authorization header if token provided
+      final headers = <String, dynamic>{};
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+        _logger.d('Using Bearer token for authentication');
+      }
+
+      final response = await _dio.get(
+        '/properties',
+        queryParameters: request.toQueryParams(),
+        options: Options(headers: headers),
+      );
+      
+      _logger.i('Properties fetched successfully');
+      return PropertyListResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      _logger.e('Get properties error: ${_handleDioException(e)}');
+      throw _handleDioException(e);
+    } catch (e) {
+      _logger.e('Unexpected error during get properties: $e');
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  Future<PropertySearchResponse> searchProperties(
+    PropertySearchRequest request, {
+    String? token,
+  }) async {
+    try {
+      _logger.i('Searching properties with bulk IDs and filters');
+
+      final headers = <String, dynamic>{};
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+        _logger.d('Using Bearer token for authentication');
+      }
+
+      final response = await _dio.post(
+        '/properties/search',
+        data: request.toJson(),
+        options: Options(headers: headers),
+      );
+
+      _logger.i('Property search completed successfully');
+      return PropertySearchResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      _logger.e('Search properties error: ${_handleDioException(e)}');
+      throw _handleDioException(e);
+    } catch (e) {
+      _logger.e('Unexpected error during search properties: $e');
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  Future<LocationClusterResponse> getLocationCluster(
+    LocationClusterRequest request, {
+    String? token,
+  }) async {
+    try {
+      _logger.i('Fetching location cluster for ${request.bounds.length} bounds');
+
+      final headers = <String, dynamic>{};
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+        _logger.d('Using Bearer token for authentication');
+      }
+
+      final response = await _dio.post(
+        '/locations/cluster',
+        data: request.toJson(),
+        options: Options(headers: headers),
+      );
+
+      _logger.i('Location cluster fetched successfully');
+      return LocationClusterResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      _logger.e('Get location cluster error: ${_handleDioException(e)}');
+      throw _handleDioException(e);
+    } catch (e) {
+      _logger.e('Unexpected error during get location cluster: $e');
       throw Exception('Unexpected error: $e');
     }
   }
